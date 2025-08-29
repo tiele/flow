@@ -1,0 +1,781 @@
+{
+    "nodes": {
+        "BAP-SS-MON": {
+            "id": null,
+            "label": "BAP-SS-MON",
+            "type": null,
+            "inputs": [],
+            "outputs": [],
+            "rule": null
+        },
+        "GLOBAL-INPUT": {
+            "id": null,
+            "label": "INPUT",
+            "type": "source",
+            "inputs": [],
+            "outputs": [
+                "L1"
+            ],
+            "rule": {
+                "id": 15,
+                "creationDate": [
+                    2025,
+                    6, 
+                    20,
+                    15,
+                    34,
+                    36,
+                    606639000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    15,
+                    34,
+                    36,
+                    606639000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "GLOBAL-INPUT",
+                "reference": "GLOBAL-INPUT-V0001",
+                "type": "INPUT",
+                "category": "INPUT",
+                "description": "sets input",
+                "content": {},
+                "userComment": "global rule creation"
+            }
+        },
+        "BAP-SS-MON-FILTER": {
+            "id": null,
+            "label": "FILTER",
+            "type": null,
+            "inputs": [
+                "L1"
+            ],
+            "outputs": [
+                "L2"
+            ],
+            "rule": {
+                "id": 17,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    9,
+                    3,
+                    894274000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    9,
+                    3,
+                    894274000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "BAP-SS-MON-FILTER",
+                "reference": "BAP-SS-MON-FILTER-V0001",
+                "type": "FILTER",
+                "category": "FILTER",
+                "description": "filters out only production monitoring",
+                "content": {
+                    "filter": {
+                        "op": "EQ",
+                        "args": [
+                            {
+                                "var": "usage.content.costComponent.environment"
+                            },
+                            {
+                                "value": "PROD"
+                            }
+                        ]
+                    }
+                },
+                "userComment": "filters out only production monitoring"
+            }
+        },
+        "BAP-SS-MON-DICTIONARY": {
+            "id": null,
+            "label": "DICTIONARY",
+            "type": null,
+            "inputs": [
+                "L2"
+            ],
+            "outputs": [
+                "L3"
+            ],
+            "rule": {
+                "id": 18,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    11,
+                    46,
+                    486947000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    11,
+                    46,
+                    486947000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "BAP-SS-MON-DICTIONARY",
+                "reference": "BAP-SS-MON-DICTIONARY-V0001",
+                "type": "ENRICH",
+                "category": "DICTIONARY",
+                "description": "adds dictionary info",
+                "content": {
+                    "enrich": [
+                        {
+                            "key": "usage.dataDictionary.providerId",
+                            "value": "568"
+                        },
+                        {
+                            "key": "usage.dataDictionary.providerBillingCode",
+                            "value": "0036805"
+                        },
+                        {
+                            "key": "usage.dataDictionary.periodicity",
+                            "value": "daily"
+                        }
+                    ]
+                },
+                "userComment": "dictionary creation"
+            }
+        },
+        "GLOBAL-ALLOCATION": {
+            "id": null,
+            "label": "ALLOCATION",
+            "type": null,
+            "inputs": [
+                "L3"
+            ],
+            "outputs": [
+                "L4"
+            ],
+            "rule": {
+                "id": 19,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    21,
+                    23,
+                    180297000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    21,
+                    23,
+                    180297000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "GLOBAL-ALLOCATION",
+                "reference": "GLOBAL-ALLOCATION-V0001",
+                "type": "ENRICH",
+                "category": "ALLOCATION",
+                "description": "allocation data",
+                "content": {
+                    "enrich": [
+                        {
+                            "key": "usage.content.costAllocationDetails",
+                            "value": {
+                                "op": "octopusLookup",
+                                "args": [
+                                    {
+                                        "onUpdate": {
+                                            "condition": {
+                                                "anomalies": "",
+                                                "costComponentStatus": "${usage.content.costComponent.status}",
+                                                "costComponentFunction": "${usage.content.costComponent.function}",
+                                                "costComponentEnvironment": "${usage.content.costComponent.environment}"
+                                            },
+                                            "navisionValidity": false,
+                                            "versioningComment": "costComponent updated by system with usage reference: ${usage.reference}"
+                                        },
+                                        "onCreation": {
+                                            "costComponentName": "${usage.content.costComponent.name}",
+                                            "costComponentType": "${usage.content.costComponent.type}",
+                                            "versioningComment": "costComponent created by system with usage reference (first seen): ${usage.reference}",
+                                            "billingCodeConsumer": "${usage.content.costComponent.billingCode}",
+                                            "costComponentStatus": "${usage.content.costComponent.status}",
+                                            "costComponentFunction": "${usage.content.costComponent.function}",
+                                            "costComponentEnvironment": "${usage.content.costComponent.environment}"
+                                        },
+                                        "costComponentReference": "${usage.content.costComponent.type}-${usage.costComponentReference}"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "userComment": "global rule creation"
+            }
+        },
+        "BAP-SS-MON-PRICING": {
+            "id": null,
+            "label": "PRICE",
+            "type": null,
+            "inputs": [
+                "L4"
+            ],
+            "outputs": [
+                "L5"
+            ],
+            "rule": {
+                "id": 20,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    33,
+                    3,
+                    914234000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    33,
+                    3,
+                    914234000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "BAP-SS-MON-PRICING",
+                "reference": "BAP-SS-MON-PRICING-V0001",
+                "type": "ENRICH",
+                "category": "PRICING",
+                "description": "sets product and cost",
+                "content": {
+                    "enrich": [
+                        {
+                            "key": "usage.product.id",
+                            "value": "BAP-SS-MON"
+                        },
+                        {
+                            "key": "usage.product.group",
+                            "value": "Application Monitoring"
+                        },
+                        {
+                            "key": "usage.product.domain",
+                            "value": "Infrastructure Services"
+                        },
+                        {
+                            "key": "usage.product.navision",
+                            "value": 100
+                        },
+                        {
+                            "key": "usage.cost.totalCost",
+                            "value": {
+                                "op": "multiply",
+                                "args": [
+                                    {
+                                        "var": "${usage.content.usageData.quantity}"
+                                    },
+                                    {
+                                        "var": "${usage.product.navision}"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                },
+                "userComment": "product and cost"
+            }
+        },
+        "BAP-SS-MON-FORMAT": {
+            "id": null,
+            "label": "FORMAT",
+            "type": null,
+            "inputs": [
+                "L5"
+            ],
+            "outputs": [
+                "L6"
+            ],
+            "rule": {
+                "id": 21,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    44,
+                    44,
+                    956104000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    44,
+                    44,
+                    956104000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "BAP-SS-MON-FORMAT",
+                "reference": "BAP-SS-MON-FORMAT-V0001",
+                "type": "ENRICH",
+                "category": "FORMAT",
+                "description": "sets formatting",
+                "content": {
+                    "enrich": [
+                        {
+                            "key": "usage.format.description",
+                            "value": "${usage.content.usageData.monitoringTestSource}: ${usage.content.usageData.monitoringTestName}"
+                        },
+                        {
+                            "key": "usage.content.technicalDescription",
+                            "value": "${usage.content.costComponent.id}  ${usage.content.usageData.monitoringTestName}"
+                        }
+                    ]
+                },
+                "userComment": "formatting descriptions"
+            }
+        },
+        "GLOBAL-INVOICE": {
+            "id": null,
+            "label": "INVOICE",
+            "type": null,
+            "inputs": [
+                "L6"
+            ],
+            "outputs": [],
+            "rule": {
+                "id": 22,
+                "creationDate": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    47,
+                    13,
+                    869408000
+                ],
+                "creationUser": "TIDE",
+                "validFrom": [
+                    2025,
+                    6,
+                    20,
+                    16,
+                    47,
+                    13,
+                    869408000
+                ],
+                "validTo": null,
+                "isCurrent": true,
+                "versioningComment": "initial version",
+                "baseReference": "GLOBAL-INVOICE",
+                "reference": "GLOBAL-INVOICE-V0001",
+                "type": "INVOICE",
+                "category": "INVOICELINE",
+                "description": "inserts invoiceline (default)",
+                "content": {
+                    "output": {
+                        "default": "param.rules.invoiceRuleDefaultMapping"
+                    }
+                },
+                "userComment": "global rule creation"
+            }
+        },
+        "BAP-SS-MON-OUTPUT": {
+            "id": null,
+            "label": "OUTPUT SELECTION",
+            "type": null,
+            "inputs": [],
+            "outputs": [],
+            "rule": null
+        }
+    },
+    "data": {
+        "GLOBAL-INPUT:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14123,
+                "creationDate": [
+                    2025,
+                    8,
+                    28,
+                    15,
+                    26,
+                    33,
+                    895657000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
+                    },
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
+                    }
+                }
+            }
+        },
+        "BAP-SS-MON-FILTER:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14123,
+                "creationDate": [
+                    2025,
+                    8,
+                    28,
+                    15,
+                    26,
+                    33,
+                    895657000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
+                    },
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
+                    }
+                },
+                "dataDictionary": {
+                    "providerBillingCode": "0036805",
+                    "providerId": "568",
+                    "periodicity": "daily"
+                }
+            }
+        },
+        "BAP-SS-MON-DICTIONARY:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14123,
+                "creationDate": [
+                    2025,
+                    8,
+                    28,
+                    15,
+                    26,
+                    33,
+                    895657000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
+                    },
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
+                    }
+                },
+                "dataDictionary": {
+                    "providerBillingCode": "0036805",
+                    "providerId": "568",
+                    "periodicity": "daily"
+                }
+            },
+            "costAllocationDetails": {
+                "costNodeDefinition": {
+                    "reference": "0500985",
+                    "rootNodeReference": "999",
+                    "billingCodeConsumer": {
+                        "value": "0500985",
+                        "inherited": false,
+                        "valueEmpty": false
+                    },
+                    "tenantReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "parentNodeReference": "999",
+                    "name": null,
+                    "customerId": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "accountManagerReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "serviceManagerReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    }
+                },
+                "costAllocationDefinition": {
+                    "costComponentFunction": "",
+                    "sourceType": "",
+                    "costComponentEnvironment": "PROD",
+                    "costComponentStatus": "In Production",
+                    "costComponentName": "null",
+                    "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
+                    "costComponentType": "null",
+                    "status": "PENDING"
+                },
+                "customerDefinition": {}
+            }
+        },
+        "GLOBAL-ALLOCATION:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14123,
+                "creationDate": [
+                    2025,
+                    8,
+                    28,
+                    15,
+                    26,
+                    33,
+                    895657000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
+                    },
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
+                    }
+                },
+                "dataDictionary": {
+                    "providerBillingCode": "0036805",
+                    "providerId": "568",
+                    "periodicity": "daily"
+                }
+            },
+            "costAllocationDetails": {
+                "costNodeDefinition": {
+                    "reference": "0500985",
+                    "rootNodeReference": "999",
+                    "billingCodeConsumer": {
+                        "value": "0500985",
+                        "inherited": false,
+                        "valueEmpty": false
+                    },
+                    "tenantReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "parentNodeReference": "999",
+                    "name": null,
+                    "customerId": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "accountManagerReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    },
+                    "serviceManagerReference": {
+                        "value": null,
+                        "inherited": false,
+                        "valueEmpty": true
+                    }
+                },
+                "costAllocationDefinition": {
+                    "costComponentFunction": "",
+                    "sourceType": "",
+                    "costComponentEnvironment": "PROD",
+                    "costComponentStatus": "In Production",
+                    "costComponentName": "null",
+                    "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
+                    "costComponentType": "null",
+                    "status": "PENDING"
+                },
+                "customerDefinition": {}
+            }
+        }
+    },
+    "links": {
+        "L1": {
+            "id": "00",
+            "label": "",
+            "source": "GLOBAL-INPUT",
+            "target": "BAP-SS-MON-FILTER",
+            "dataReference": "GLOBAL-INPUT:o"
+        },
+        "L2": {
+            "id": "01",
+            "label": "",
+            "source": "BAP-SS-MON-FILTER",
+            "target": "BAP-SS-MON-DICTIONARY",
+            "dataReference": "BAP-SS-MON-FILTER:o"
+        },
+        "L3": {
+            "id": "12",
+            "label": "",
+            "source": "BAP-SS-MON-DICTIONARY",
+            "target": "GLOBAL-ALLOCATION",
+            "dataReference": "BAP-SS-MON-DICTIONARY:o"
+        },
+        "L4": {
+            "id": "23",
+            "label": "",
+            "source": "GLOBAL-ALLOCATION",
+            "target": "BAP-SS-MON-PRICING",
+            "dataReference": "GLOBAL-ALLOCATION:o"
+        },
+        "L5": {
+            "id": "34",
+            "label": "",
+            "source": "BAP-SS-MON-PRICING",
+            "target": "BAP-SS-MON-FORMAT",
+            "dataReference": null
+        },
+        "L6": {
+            "id": "45",
+            "label": "",
+            "source": "BAP-SS-MON-FORMAT",
+            "target": "GLOBAL-INVOICE",
+            "dataReference": null
+        }
+    },
+    "clusters": [
+        {
+            "id": "output_cluster",
+            "label": "output cluster",
+            "childNodeIds": [
+                "BAP-SS-MON",
+                "BAP-SS-MON-OUTPUT"
+            ]
+        },
+        {
+            "id": "transformation_cluster",
+            "label": "output cluster e",
+            "childNodeIds": [
+                "GLOBAL-INPUT",
+                "BAP-SS-MON-FILTER",
+                "BAP-SS-MON-DICTIONARY",
+                "GLOBAL-ALLOCATION",
+                "BAP-SS-MON-PRICING",
+                "BAP-SS-MON-FORMAT",
+                "GLOBAL-INVOICE"
+            ]
+        }
+    ]
+}

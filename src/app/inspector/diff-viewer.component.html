@@ -1,0 +1,66 @@
+<div class="diff-summary">
+  <span class="pill add">+{{summary.added}} added</span>
+  <span class="pill chg">±{{summary.changed}} changed</span>
+  <span class="pill rem">−{{summary.removed}} removed</span>
+  <span class="spacer"></span>
+  <button class="toggle" [class.active]="view==='table'" (click)="view='table'">Side‑by‑side</button>
+  <button class="toggle" [class.active]="view==='html'" (click)="view='html'">Tree view</button>
+  <span class="count" *ngIf="entries.length===0">No differences</span>
+  <span class="scope" *ngIf="focusPaths?.length">scope: {{ focusPaths.join(', ') }}</span>
+  <span class="spacer"></span>
+  <label class="scope-toggle" *ngIf="focusPaths?.length">
+    <input type="checkbox" [(ngModel)]="scopeEnabled"/>
+    Scoped
+  </label>
+</div>
+
+<div *ngIf="view==='table'">
+  <div class="filters">
+    <label><input type="checkbox" [(ngModel)]="showAdded" /> Added</label>
+    <label><input type="checkbox" [(ngModel)]="showChanged" /> Changed</label>
+    <label><input type="checkbox" [(ngModel)]="showRemoved" /> Removed</label>
+  </div>
+  <table class="diff-table" *ngIf="filteredEntries().length; else noDiff">
+    <thead>
+      <tr>
+        <th class="col-path">Path</th>
+        <th class="col-left">IN</th>
+        <th class="col-right">OUT</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let e of filteredEntries()" [class.added]="e.type==='added'" [class.removed]="e.type==='removed'" [class.changed]="e.type==='changed'">
+        <td class="path">
+          <span class="badge" [class.b-add]="e.type==='added'" [class.b-rem]="e.type==='removed'" [class.b-chg]="e.type==='changed'">{{ e.type }}</span>
+          <code>{{ e.path }}</code>
+        </td>
+        <td class="left">
+          <div class="value-row">
+            <button class="mini" *ngIf="isComplex(e.left)" (click)="toggleExpand(e.path + ':L')">{{ expanded[e.path + ':L'] ? 'Collapse' : 'Expand' }}</button>
+            <span class="preview" *ngIf="!expanded[e.path + ':L' ]">{{ preview(e.left) }}</span>
+          </div>
+          <pre *ngIf="expanded[e.path + ':L']">{{ pretty(e.left) }}</pre>
+        </td>
+        <td class="right">
+          <div class="value-row">
+            <button class="mini" *ngIf="isComplex(e.right)" (click)="toggleExpand(e.path + ':R')">{{ expanded[e.path + ':R'] ? 'Collapse' : 'Expand' }}</button>
+            <span class="preview" *ngIf="!expanded[e.path + ':R' ]">{{ preview(e.right) }}</span>
+          </div>
+          <pre *ngIf="expanded[e.path + ':R']">{{ pretty(e.right) }}</pre>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+  <ng-template #noDiff>
+    <div class="no-diff">Inputs and outputs are identical.</div>
+  </ng-template>
+</div>
+
+<div *ngIf="view==='html'">
+  <ng-container *ngIf="html; else noTree">
+    <div class="diff-body" [innerHTML]="html"></div>
+  </ng-container>
+  <ng-template #noTree>
+    <div class="no-diff">No differences</div>
+  </ng-template>
+</div>

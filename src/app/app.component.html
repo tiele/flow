@@ -1,0 +1,64 @@
+<header class="app-header">
+  <div class="title">Flow Viewer</div>
+  <div class="filters">
+    <label>Source Type
+      <select [(ngModel)]="sourceType">
+        <option value="all">All</option>
+        <option value="PROD">PROD</option>
+        <option value="TEST">TEST</option>
+      </select>
+    </label>
+    <label>Flow
+      <select [(ngModel)]="flowFilter">
+        <option value="all">All</option>
+        <option value="transformation">Transformation</option>
+        <option value="output">Output</option>
+      </select>
+    </label>
+    <button (click)="loadSample()">Load sample</button>
+    <label class="filebtn">Load JSON <input type="file" accept="application/json" (change)="onPickFile($event)" /></label>
+  </div>
+</header>
+
+<main class="page">
+  <div class="main-layout" *ngIf="dag; else noDag">
+    <div class="top-row">
+      <div class="graph-zone" [style.height.px]="graphHeight">
+        <app-flow-graph [dag]="dag" (selectNode)="onSelectNode($event)"></app-flow-graph>
+      </div>
+      <app-node-inspector
+        [dag]="dag"
+        [selectedKey]="selectedKey"
+        [containerHeight]="graphHeight"
+        mode="editor"
+        (updateRule)="onUpdateRule($event)">
+      </app-node-inspector>
+    </div>
+    <div class="resizer" (mousedown)="onDragStart($event)">
+      <div class="grip"></div>
+    </div>
+    <div class="bottom-row">
+      <div class="diff-box">
+        <div class="diff-title">IN diff (vs OUT)</div>
+        <ng-container *ngIf="selectedKey; else noSel1">
+          <app-diff-viewer [left]="inPayload" [right]="outPayload" [focusPaths]="focusPaths"></app-diff-viewer>
+        </ng-container>
+        <ng-template #noSel1>
+          <div class="placeholder">Select a node to see differences.</div>
+        </ng-template>
+      </div>
+      <div class="diff-box">
+        <div class="diff-title">OUT (full)</div>
+        <ng-container *ngIf="selectedKey; else noSel2">
+          <pre class="json">{{ outPayload | json }}</pre>
+        </ng-container>
+        <ng-template #noSel2>
+          <div class="placeholder">Select a node to see output payload.</div>
+        </ng-template>
+      </div>
+    </div>
+  </div>
+  <ng-template #noDag>
+    <div class="empty">Load a JSON to begin.</div>
+  </ng-template>
+</main>

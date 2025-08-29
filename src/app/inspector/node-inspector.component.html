@@ -1,0 +1,76 @@
+<ng-container [ngSwitch]="mode">
+  <!-- Full mode: original side-by-side inside component -->
+  <div class="inspector" *ngSwitchCase="'full'">
+    <div class="editor">
+      <div class="title">Business Rule</div>
+      <div class="rule-meta">
+        <label>
+          <span class="l">Name</span>
+          <input type="text" [(ngModel)]="ruleReference" placeholder="Rule name / reference" />
+        </label>
+        <label>
+          <span class="l">Type</span>
+          <input type="text" [(ngModel)]="nodeType" placeholder="Type (e.g. INPUT, FILTER, ENRICH)" />
+        </label>
+        <label>
+          <span class="l">Category</span>
+          <input type="text" [(ngModel)]="ruleCategory" placeholder="Category" />
+        </label>
+        <label class="col-span">
+          <span class="l">Description</span>
+          <input type="text" [(ngModel)]="ruleDescription" placeholder="Short description" />
+        </label>
+      </div>
+      <textarea [(ngModel)]="ruleText" spellcheck="false" placeholder="No rule on this node"></textarea>
+      <button class="save" (click)="onSave()">Save / Apply</button>
+    </div>
+
+    <div class="diff-col">
+      <div class="diff-box">
+        <div class="diff-title">IN diff (vs OUT)</div>
+        <app-diff-viewer [left]="inPayload" [right]="outPayload" [focusPaths]="focusPaths"></app-diff-viewer>
+      </div>
+      <div class="diff-box">
+        <div class="diff-title">OUT (full)</div>
+        <pre class="json">{{ outPayload | json }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- Editor-only mode -->
+  <div class="editor" *ngSwitchCase="'editor'" [style.height.px]="containerHeight || null">
+    <div class="title">Business Rule</div>
+    <div class="rule-meta">
+      <label>
+        <span class="l">Name</span>
+        <input type="text" [(ngModel)]="ruleReference" placeholder="Rule name / reference" />
+      </label>
+      <label>
+        <span class="l">Type</span>
+        <input type="text" [(ngModel)]="nodeType" placeholder="Type (e.g. INPUT, FILTER, ENRICH)" />
+      </label>
+      <label>
+        <span class="l">Category</span>
+        <input type="text" [(ngModel)]="ruleCategory" placeholder="Category" />
+      </label>
+      <label class="col-span">
+        <span class="l">Description</span>
+        <input type="text" [(ngModel)]="ruleDescription" placeholder="Short description" />
+      </label>
+    </div>
+    <textarea [(ngModel)]="ruleText" spellcheck="false" placeholder="No rule on this node"></textarea>
+    <button class="save" (click)="onSave()">Save / Apply</button>
+  </div>
+
+  <!-- Diff-only mode -->
+  <div class="diff-col" *ngSwitchCase="'diff'">
+    <div class="diff-box">
+      <div class="diff-title">IN diff (vs OUT)</div>
+      <app-diff-viewer [left]="inPayload" [right]="outPayload" [focusPaths]="focusPaths"></app-diff-viewer>
+    </div>
+    <div class="diff-box">
+      <div class="diff-title">OUT (full)</div>
+      <pre class="json">{{ outPayload | json }}</pre>
+    </div>
+  </div>
+</ng-container>
