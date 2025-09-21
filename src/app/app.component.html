@@ -42,7 +42,8 @@
             [editMode]="editConnections"
             (selectNode)="onSelectNode($event)"
             (addLink)="onAddLink($event)"
-            (removeLink)="onRemoveLink($event)">
+            (removeLink)="onRemoveLink($event)"
+            (nodePositionsChange)="onNodePositionsChange($event)">
           </app-flow-graph>
         </div>
         <div class="json-content" *ngIf="viewMode==='json'">

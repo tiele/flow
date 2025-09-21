@@ -26,6 +26,7 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Output() selectNode = new EventEmitter<string>();
   @Output() addLink = new EventEmitter<{ source: string; target: string }>();
   @Output() removeLink = new EventEmitter<string>();
+  @Output() nodePositionsChange = new EventEmitter<Array<{ key: string; x: number; y: number }>>();
   @ViewChild('cyHost', { static: true }) cyHost!: ElementRef<HTMLDivElement>;
 
   private cy?: cytoscape.Core;
@@ -53,6 +54,7 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
 
   private build() {
     const elements: cytoscape.ElementDefinition[] = [];
+    const presetPositions = new Map<string, { x: number; y: number }>();
 
     (this.dag?.clusters ?? []).forEach((c: Cluster) => {
       elements.push({ data: { id: c.id, label: c.label ?? c.id, isCluster: true } });
@@ -62,6 +64,9 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       const parent = (this.dag?.clusters ?? []).find(c => c.childNodeIds.includes(n.key))?.id;
       // Global is determined strictly by node key prefix
       const isGlobal = n.key.startsWith('GLOBAL-');
+      if (n.display && isFinite(n.display.x) && isFinite(n.display.y)) {
+        presetPositions.set(n.key, { x: n.display.x, y: n.display.y });
+      }
       elements.push({
         data: {
           id: n.key,
@@ -85,15 +90,35 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       style: this.styles() as any
     } as any);
 
+    const lockedForPreset: cytoscape.NodeSingular[] = [];
+    this.cy.nodes().forEach(node => {
+      const preset = presetPositions.get(node.id());
+      if (preset) {
+        node.position({ x: preset.x, y: preset.y });
+        node.lock();
+        lockedForPreset.push(node);
+      }
+    });
+
     // Run layout explicitly so we can reliably hook layoutstop
     const layout = this.cy.layout({ name: 'dagre', rankDir: 'LR', nodeSep: 50, rankSep: 80, edgeSep: 10 } as any);
-    layout.one('layoutstop', () => this.positionIsolatedNodes());
+    layout.one('layoutstop', () => {
+      lockedForPreset.forEach(n => n.unlock());
+      this.positionIsolatedNodes(new Set(presetPositions.keys()));
+      this.cy?.fit(undefined, 24);
+      this.emitAllPositions();
+    });
     layout.run();
 
     this.cy!.on('tap', 'node', (evt: cytoscape.EventObject) => this.onNodeTap(evt));
     this.cy!.on('tap', 'edge', (evt: cytoscape.EventObject) => this.onEdgeTap(evt));
     this.cy!.on('tap', (evt: cytoscape.EventObject) => {
       if (evt.target === this.cy) this.clearPendingSource();
+    });
+    this.cy!.on('dragfree', 'node', (evt: cytoscape.EventObject) => {
+      const node = evt.target as cytoscape.NodeSingular;
+      if (node.data('isCluster')) return;
+      this.emitPositions(this.collectionFor(node));
     });
   }
 
@@ -155,38 +180,57 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     if (!this.editMode) this.clearPendingSource();
   }
 
-  private positionIsolatedNodes() {
+  private positionIsolatedNodes(presetKeys: Set<string>) {
     if (!this.cy) return;
     const allNodes = this.cy.nodes();
-    const iso = allNodes.filter(n => !n.data('isCluster') && n.connectedEdges().length === 0);
+    const iso = allNodes.filter(n => !n.data('isCluster') && n.connectedEdges().length === 0 && !presetKeys.has(n.id()));
     if (iso.length === 0) return;
 
-    // Place relative to current viewport (container), not model bounding box
-    const zoom = this.cy.zoom();
-    const pan = this.cy.pan(); // { x, y } in rendered px offset of model origin
-    const containerW = this.cy.width();
-    const containerH = this.cy.height();
-
-    const padRightPx = 24; // visual padding from right edge
-    const padTopPx = 24;   // visual padding from top edge
-    const spacingPx = 180; // spacing in rendered pixels between isolated nodes
+    const anchorNodes = allNodes.filter(n => n.connectedEdges().length > 0 || presetKeys.has(n.id()));
+    const referenceBox = anchorNodes.length > 0 ? anchorNodes.boundingBox() : allNodes.boundingBox();
+    const baseX = (Number.isFinite(referenceBox.x2) ? referenceBox.x2 : 0) + 200;
+    const startY = Number.isFinite(referenceBox.y1) ? referenceBox.y1 : 0;
+    const spacingY = 160;
 
     const sorted = iso.sort((a, b) => a.id().localeCompare(b.id()));
-    const totalWidthPx = (sorted.length - 1) * spacingPx;
-    const startRenderedX = Math.max(16, containerW - padRightPx - totalWidthPx);
-    const renderedY = Math.min(containerH - 80, padTopPx + 0); // ensure inside viewport
-
-    // Convert rendered (px) -> model coords
-    const toModel = (rx: number, ry: number) => ({ x: (rx - pan.x) / zoom, y: (ry - pan.y) / zoom });
-    const baseModel = toModel(startRenderedX, renderedY);
-
-    sorted.forEach((n, i) => {
-      const m = toModel(startRenderedX + i * spacingPx, renderedY);
-      n.position({ x: m.x, y: m.y });
+    sorted.forEach((n, idx) => {
+      const x = baseX;
+      const y = startY + idx * spacingY;
+      n.position({ x, y });
     });
 
-    // Nudge parents (clusters) to recompute bounding boxes
-    iso.parents().forEach(p => { p.emit('position'); }); // trigger re-render
+    iso.parents().forEach(p => { p.emit('position'); });
+  }
+
+  private emitAllPositions() {
+    if (!this.cy) return;
+    this.emitPositions(this.cy.nodes() as unknown as cytoscape.CollectionReturnValue);
+  }
+
+  private emitPositions(nodes: cytoscape.CollectionReturnValue) {
+    const updates = nodes
+      .filter(ele => ele.isNode() && !ele.data('isCluster'))
+      .map(ele => {
+        const node = ele as cytoscape.NodeSingular;
+        const pos = node.position();
+        const x = Number(pos.x.toFixed(2));
+        const y = Number(pos.y.toFixed(2));
+        if (!isFinite(x) || !isFinite(y)) return undefined;
+        const maxAbs = 1e6;
+        if (Math.abs(x) > maxAbs || Math.abs(y) > maxAbs) return undefined;
+        return { key: node.id(), x, y };
+      });
+    const filtered = updates.filter((u): u is { key: string; x: number; y: number } => !!u);
+    if (filtered.length) this.nodePositionsChange.emit(filtered);
+  }
+
+  private collectionFor(node: cytoscape.NodeSingular): cytoscape.CollectionReturnValue {
+    if (!this.cy) return (node as unknown) as cytoscape.CollectionReturnValue;
+    const anyNode = node as any;
+    if (typeof anyNode.collection === 'function') {
+      return anyNode.collection();
+    }
+    return this.cy.nodes().filter(ele => ele.id() === node.id()) as unknown as cytoscape.CollectionReturnValue;
   }
 
   private styles(): any[] {

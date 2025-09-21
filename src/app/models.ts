@@ -13,6 +13,11 @@ export interface DagNode {
   inputs?: string[];
   outputs?: string[];
   rule?: Rule | null;
+  display?: NodeDisplay | null;
+}
+export interface NodeDisplay {
+  x: number;
+  y: number;
 }
 export interface DagLink {
   id: string;

@@ -171,6 +171,24 @@ export class AppComponent {
     this.editConnections = !this.editConnections;
   }
 
+  onNodePositionsChange(updates: Array<{ key: string; x: number; y: number }>) {
+    if (!this.dag || updates.length === 0) return;
+    const updateMap = new Map(updates.map(u => [u.key, u]));
+    let changed = false;
+    const nodes = this.dag.nodes.map(node => {
+      const update = updateMap.get(node.key);
+      if (!update) return node;
+      const current = node.display;
+      const same = current && Math.abs(current.x - update.x) < 0.01 && Math.abs(current.y - update.y) < 0.01;
+      if (same) return node;
+      changed = true;
+      return { ...node, display: { x: update.x, y: update.y } };
+    });
+    if (!changed) return;
+    this.dag = { ...this.dag, nodes };
+    this.refreshDagJson();
+  }
+
   onAddLink(e: { source: string; target: string }) {
     if (!this.dag) return;
     const { source, target } = e;

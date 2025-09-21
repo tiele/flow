@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Cluster, DagFile, DagLink, DagNode, RuntimeDag } from './models';
+import { Cluster, DagFile, DagLink, DagNode, NodeDisplay, RuntimeDag } from './models';
 
 @Injectable({ providedIn: 'root' })
 export class DagLoaderService {
@@ -19,6 +19,7 @@ export class DagLoaderService {
       type: n.type ?? null,
       inputs: n.inputs ?? [],
       outputs: n.outputs ?? [],
+      display: this.parseDisplay(n.display),
       rule: n.rule ? {
         id: n.rule.id,
         type: n.rule.type,
@@ -89,6 +90,9 @@ export class DagLoaderService {
       if (n.type !== undefined) entry.type = n.type;
       if (n.inputs && n.inputs.length) entry.inputs = [...n.inputs];
       if (n.outputs && n.outputs.length) entry.outputs = [...n.outputs];
+      if (n.display && isFinite(n.display.x) && isFinite(n.display.y)) {
+        entry.display = { x: n.display.x, y: n.display.y };
+      }
       if (n.rule) {
         entry.rule = {
           id: n.rule.id,
@@ -121,5 +125,15 @@ export class DagLoaderService {
     const data = { ...dag.data };
 
     return { nodes, links, clusters, data };
+  }
+
+  private parseDisplay(value: any): NodeDisplay | null {
+    if (!value || typeof value !== 'object') return null;
+    const x = Number((value as any).x);
+    const y = Number((value as any).y);
+    const maxAbs = 1e6;
+    if (!isFinite(x) || !isFinite(y)) return null;
+    if (Math.abs(x) > maxAbs || Math.abs(y) > maxAbs) return null;
+    return { x, y };
   }
 }

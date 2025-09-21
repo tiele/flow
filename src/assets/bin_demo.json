@@ -1,0 +1,1194 @@
+{
+  "nodes": {
+    "BAP-SS-MON": {
+      "label": "BAP-SS-MON",
+      "type": null,
+      "display": {
+        "x": 262.03,
+        "y": 250.67
+      }
+    },
+    "GLOBAL-INPUT": {
+      "label": "INPUT",
+      "type": null,
+      "outputs": [
+        "L1"
+      ],
+      "display": {
+        "x": 236.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 15,
+        "type": "INPUT",
+        "category": "INPUT",
+        "description": "sets input",
+        "content": {},
+        "reference": "GLOBAL-INPUT-V0001"
+      }
+    },
+    "BAP-SS-MON-FILTER": {
+      "label": "FILTER",
+      "type": null,
+      "display": {
+        "x": 316.44,
+        "y": 541.51
+      },
+      "rule": {
+        "id": 17,
+        "type": "FILTER",
+        "category": "FILTER",
+        "description": "filters out only production monitoring",
+        "content": {
+          "filter": {
+            "op": "EQ",
+            "args": [
+              {
+                "var": "usage.content.costComponent.environment"
+              },
+              {
+                "value": "PROD"
+              }
+            ]
+          }
+        },
+        "reference": "BAP-SS-MON-FILTER-V0001"
+      }
+    },
+    "BAP-SS-MON-DICTIONARY": {
+      "label": "DICTIONARY",
+      "type": null,
+      "inputs": [
+        "L1"
+      ],
+      "outputs": [
+        "L2"
+      ],
+      "display": {
+        "x": 404.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 18,
+        "type": "ENRICH",
+        "category": "DICTIONARY",
+        "description": "adds dictionary info",
+        "content": {
+          "enrich": [
+            {
+              "key": "usage.dataDictionary.providerId",
+              "value": "568"
+            },
+            {
+              "key": "usage.dataDictionary.providerBillingCode",
+              "value": "0036805"
+            },
+            {
+              "key": "usage.dataDictionary.periodicity",
+              "value": "daily"
+            }
+          ]
+        },
+        "reference": "BAP-SS-MON-DICTIONARY-V0001"
+      }
+    },
+    "GLOBAL-ALLOCATION": {
+      "label": "ALLOCATION",
+      "type": null,
+      "inputs": [
+        "L2"
+      ],
+      "outputs": [
+        "L3"
+      ],
+      "display": {
+        "x": 532.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 19,
+        "type": "ENRICH",
+        "category": "ALLOCATION",
+        "description": "allocation data",
+        "content": {
+          "enrich": [
+            {
+              "key": "costAllocationDetails",
+              "value": {
+                "op": "octopusLookup",
+                "args": [
+                  {
+                    "onUpdate": {
+                      "condition": {
+                        "anomalies": null,
+                        "costComponentStatus": "${usage.content.costComponent.status}",
+                        "costComponentFunction": "${usage.content.costComponent.function}",
+                        "costComponentEnvironment": "${usage.content.costComponent.environment}"
+                      },
+                      "navisionValidity": false,
+                      "versioningComment": "costComponent updated by system with usage reference: ${usage.reference}"
+                    },
+                    "onCreation": {
+                      "sourceType": "${usage.sourceType}",
+                      "costComponentName": "${usage.content.costComponent.name}",
+                      "costComponentType": "${usage.content.costComponent.type}",
+                      "versioningComment": "costComponent created by system with usage reference (first seen): ${usage.reference}",
+                      "billingCodeConsumer": "${usage.content.costComponent.billingCode}",
+                      "costComponentStatus": "${usage.content.costComponent.status}",
+                      "costComponentFunction": "${usage.content.costComponent.function}",
+                      "costComponentEnvironment": "${usage.content.costComponent.environment}"
+                    },
+                    "costComponentReference": "${usage.content.costComponent.type}-${usage.costComponentReference}"
+                  }
+                ]
+              }
+            },
+            {
+              "key": "usage.octopus.costComponent.type",
+              "value": "${costAllocationDetails.costAllocationDefinition.costComponentType}"
+            },
+            {
+              "key": "usage.octopus.costComponent.id",
+              "value": "${costAllocationDetails.costAllocationDefinition.costComponentReference}"
+            },
+            {
+              "key": "usage.octopus.costComponent.name",
+              "value": "${costAllocationDetails.costAllocationDefinition.costComponentName}"
+            },
+            {
+              "key": "usage.octopus.costComponent.function",
+              "value": "${costAllocationDetails.costAllocationDefinition.costComponentFunction}"
+            },
+            {
+              "key": "usage.octopus.costComponent.status",
+              "value": "${costAllocationDetails.costAllocationDefinition.status}"
+            },
+            {
+              "key": "usage.octopus.costComponent.environment",
+              "value": "${costAllocationDetails.costAllocationDefinition.costComponentEnvironment}"
+            },
+            {
+              "key": "usage.octopus.costComponent.billingCode",
+              "value": "${costAllocationDetails.costNodeDefinition.billingCodeConsumer.value}"
+            },
+            {
+              "key": "usage.octopus.node.id",
+              "value": "${costAllocationDetails.costNodeDefinition.reference}"
+            },
+            {
+              "key": "usage.octopus.node.name",
+              "value": "${costAllocationDetails.costNodeDefinition.name}"
+            },
+            {
+              "key": "usage.octopus.node.customerId",
+              "value": "${costAllocationDetails.costNodeDefinition.customerId.value}"
+            },
+            {
+              "key": "usage.octopus.node.customerName",
+              "value": "${costAllocationDetails.costNodeDefinition.customerName.value}"
+            },
+            {
+              "key": "usage.octopus.node.serviceManager",
+              "value": "${costAllocationDetails.costNodeDefinition.serviceManagerReference.value}"
+            },
+            {
+              "key": "usage.octopus.node.accountManager",
+              "value": "${costAllocationDetails.costNodeDefinition.accountManagerReference.value}"
+            },
+            {
+              "key": "usage.octopus.node.billingCode",
+              "value": "${costAllocationDetails.costNodeDefinition.billingCodeConsumer.value}"
+            },
+            {
+              "key": "usage.octopus.node.billingCodeDescription",
+              "value": ""
+            },
+            {
+              "key": "usage.octopus.node.parentNodeId",
+              "value": "${costAllocationDetails.costNodeDefinition.parentNodeReference}"
+            },
+            {
+              "key": "usage.octopus.node.rootNodeId",
+              "value": "${costAllocationDetails.costNodeDefinition.rootNodeReference}"
+            }
+          ]
+        },
+        "reference": "GLOBAL-ALLOCATION-V0001"
+      }
+    },
+    "BAP-SS-MON-PRICING": {
+      "label": "PRICE",
+      "type": null,
+      "inputs": [
+        "L3"
+      ],
+      "outputs": [
+        "L4"
+      ],
+      "display": {
+        "x": 660.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 20,
+        "type": "ENRICH",
+        "category": "PRICING",
+        "description": "sets product and cost",
+        "content": {
+          "enrich": [
+            {
+              "key": "usage.product.id",
+              "value": "BAP-SS-MON"
+            },
+            {
+              "key": "usage.product.group",
+              "value": "Application Monitoring"
+            },
+            {
+              "key": "usage.product.domain",
+              "value": "Infrastructure Services"
+            },
+            {
+              "key": "usage.billingCodeDescription",
+              "value": "Navision needed"
+            },
+            {
+              "key": "usage.product.navision",
+              "value": 145.6
+            },
+            {
+              "key": "usage.cost.totalCost",
+              "value": {
+                "op": "multiply",
+                "args": [
+                  {
+                    "var": "usage.content.usageData.quantity"
+                  },
+                  {
+                    "var": "usage.product.navision"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "reference": "BAP-SS-MON-PRICING-V0001"
+      }
+    },
+    "BAP-SS-MON-FORMAT": {
+      "label": "FORMAT",
+      "type": null,
+      "inputs": [
+        "L4"
+      ],
+      "outputs": [
+        "L5"
+      ],
+      "display": {
+        "x": 788.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 21,
+        "type": "ENRICH",
+        "category": "FORMAT",
+        "description": "sets formatting",
+        "content": {
+          "enrich": [
+            {
+              "key": "usage.format.description",
+              "value": "${usage.content.usageData.monitoringTestSource}: ${usage.content.usageData.monitoringTestName}"
+            },
+            {
+              "key": "usage.format.technicalDescription",
+              "value": "[source:${usage.content.usageData.monitoringTestSource}][test type:${usage.content.usageData.monitoringTestType}][tenant:${usage.content.usageData.monitoringTenantLabel}]"
+            }
+          ]
+        },
+        "reference": "BAP-SS-MON-FORMAT-V0001"
+      }
+    },
+    "GLOBAL-INVOICE": {
+      "label": "INVOICE",
+      "type": null,
+      "inputs": [
+        "L5"
+      ],
+      "display": {
+        "x": 916.51,
+        "y": 446.42
+      },
+      "rule": {
+        "id": 22,
+        "type": "INVOICE",
+        "category": "INVOICELINE",
+        "description": "inserts invoiceline (default)",
+        "content": {
+          "output": {
+            "default": "rules.invoiceRuleDefaultMapping"
+          }
+        },
+        "reference": "GLOBAL-INVOICE-V0001"
+      }
+    },
+    "BAP-SS-MON-OUTPUT": {
+      "label": "OUTPUT SELECTION",
+      "type": null,
+      "display": {
+        "x": 901.67,
+        "y": 259.89
+      }
+    }
+  },
+  "links": {
+    "L1": {
+      "label": "",
+      "source": "GLOBAL-INPUT",
+      "target": "BAP-SS-MON-DICTIONARY",
+      "dataReference": "GLOBAL-INPUT:o"
+    },
+    "L2": {
+      "label": "",
+      "source": "BAP-SS-MON-DICTIONARY",
+      "target": "GLOBAL-ALLOCATION",
+      "dataReference": "BAP-SS-MON-DICTIONARY:o"
+    },
+    "L3": {
+      "label": "",
+      "source": "GLOBAL-ALLOCATION",
+      "target": "BAP-SS-MON-PRICING",
+      "dataReference": "GLOBAL-ALLOCATION:o"
+    },
+    "L4": {
+      "label": "",
+      "source": "BAP-SS-MON-PRICING",
+      "target": "BAP-SS-MON-FORMAT",
+      "dataReference": "BAP-SS-MON-PRICING:o"
+    },
+    "L5": {
+      "label": "",
+      "source": "BAP-SS-MON-FORMAT",
+      "target": "GLOBAL-INVOICE",
+      "dataReference": "BAP-SS-MON-FORMAT:o"
+    }
+  },
+  "clusters": [
+    {
+      "id": "output_cluster",
+      "label": "output cluster",
+      "childNodeIds": [
+        "BAP-SS-MON",
+        "BAP-SS-MON-OUTPUT"
+      ]
+    },
+    {
+      "id": "transformation_cluster",
+      "label": "output cluster e",
+      "childNodeIds": [
+        "GLOBAL-INPUT",
+        "BAP-SS-MON-FILTER",
+        "BAP-SS-MON-DICTIONARY",
+        "GLOBAL-ALLOCATION",
+        "BAP-SS-MON-PRICING",
+        "BAP-SS-MON-FORMAT",
+        "GLOBAL-INVOICE"
+      ]
+    }
+  ],
+  "data": {
+    "GLOBAL-INPUT:o": {
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        }
+      }
+    },
+    "BAP-SS-MON-DICTIONARY:o": {
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        },
+        "dataDictionary": {
+          "providerBillingCode": "0036805",
+          "providerId": "568",
+          "periodicity": "daily"
+        }
+      }
+    },
+    "GLOBAL-ALLOCATION:o": {
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        },
+        "dataDictionary": {
+          "providerBillingCode": "0036805",
+          "providerId": "568",
+          "periodicity": "daily"
+        },
+        "octopus": {
+          "node": {
+            "billingCode": "0999999",
+            "billingCodeDescription": "",
+            "accountManager": "null",
+            "rootNodeId": "999",
+            "name": "null",
+            "customerId": "null",
+            "parentNodeId": "999",
+            "id": "0999999",
+            "customerName": "null",
+            "serviceManager": "null"
+          },
+          "costComponent": {
+            "billingCode": "0999999",
+            "environment": "PROD",
+            "function": "",
+            "name": "Demo Name BIN",
+            "id": "MON-BAP-DEMO-BIN",
+            "type": "MON",
+            "status": "PENDING"
+          }
+        }
+      },
+      "costAllocationDetails": {
+        "costNodeDefinition": {
+          "baseReference": null,
+          "billingCodeConsumer": {
+            "value": "0999999",
+            "inherited": false,
+            "valueEmpty": false
+          },
+          "versioningComment": "billing code put under root customer by system",
+          "creationUser": "System",
+          "parentNodeReference": "999",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "tenantReferenceBlank": true,
+          "serviceManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "reference": "0999999",
+          "billingCodeConsumerBlank": false,
+          "accountManagerReferenceBlank": true,
+          "customerId": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "id": 12217,
+          "customerIdBlank": true,
+          "validTo": null,
+          "tenantReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerNameBlank": true,
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "accountManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerName": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "rootNodeReference": "999",
+          "isCurrent": null,
+          "serviceManagerReferenceBlank": true,
+          "name": null
+        },
+        "costAllocationDefinition": {
+          "versioningComment": "costComponent created by system with usage reference (first seen): DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+          "creationUser": "System",
+          "costComponentStatus": "In Production",
+          "costComponentEnvironment": "PROD",
+          "costComponentName": "Demo Name BIN",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "anomalies": null,
+          "isCurrent": null,
+          "costComponentFunction": "",
+          "costNodeReference": "0999999",
+          "sourceType": "MONITORING-01.00",
+          "id": 12508,
+          "costComponentReference": "MON-BAP-DEMO-BIN",
+          "validTo": null,
+          "costComponentType": "MON",
+          "status": "PENDING"
+        },
+        "customerDefinition": {}
+      }
+    },
+    "BAP-SS-MON-PRICING:o": {
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        },
+        "dataDictionary": {
+          "providerBillingCode": "0036805",
+          "providerId": "568",
+          "periodicity": "daily"
+        },
+        "octopus": {
+          "node": {
+            "billingCode": "0999999",
+            "billingCodeDescription": "",
+            "accountManager": "null",
+            "rootNodeId": "999",
+            "name": "null",
+            "customerId": "null",
+            "parentNodeId": "999",
+            "id": "0999999",
+            "customerName": "null",
+            "serviceManager": "null"
+          },
+          "costComponent": {
+            "billingCode": "0999999",
+            "environment": "PROD",
+            "function": "",
+            "name": "Demo Name BIN",
+            "id": "MON-BAP-DEMO-BIN",
+            "type": "MON",
+            "status": "PENDING"
+          }
+        },
+        "product": {
+          "domain": "Infrastructure Services",
+          "id": "BAP-SS-MON",
+          "navision": 145.6,
+          "group": "Application Monitoring"
+        },
+        "billingCodeDescription": "Navision needed",
+        "cost": {
+          "totalCost": 145.6
+        }
+      },
+      "costAllocationDetails": {
+        "costNodeDefinition": {
+          "baseReference": null,
+          "billingCodeConsumer": {
+            "value": "0999999",
+            "inherited": false,
+            "valueEmpty": false
+          },
+          "versioningComment": "billing code put under root customer by system",
+          "creationUser": "System",
+          "parentNodeReference": "999",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "tenantReferenceBlank": true,
+          "serviceManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "reference": "0999999",
+          "billingCodeConsumerBlank": false,
+          "accountManagerReferenceBlank": true,
+          "customerId": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "id": 12217,
+          "customerIdBlank": true,
+          "validTo": null,
+          "tenantReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerNameBlank": true,
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "accountManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerName": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "rootNodeReference": "999",
+          "isCurrent": null,
+          "serviceManagerReferenceBlank": true,
+          "name": null
+        },
+        "costAllocationDefinition": {
+          "versioningComment": "costComponent created by system with usage reference (first seen): DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+          "creationUser": "System",
+          "costComponentStatus": "In Production",
+          "costComponentEnvironment": "PROD",
+          "costComponentName": "Demo Name BIN",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "anomalies": null,
+          "isCurrent": null,
+          "costComponentFunction": "",
+          "costNodeReference": "0999999",
+          "sourceType": "MONITORING-01.00",
+          "id": 12508,
+          "costComponentReference": "MON-BAP-DEMO-BIN",
+          "validTo": null,
+          "costComponentType": "MON",
+          "status": "PENDING"
+        },
+        "customerDefinition": {}
+      }
+    },
+    "BAP-SS-MON-FORMAT:o": {
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        },
+        "dataDictionary": {
+          "providerBillingCode": "0036805",
+          "providerId": "568",
+          "periodicity": "daily"
+        },
+        "octopus": {
+          "node": {
+            "billingCode": "0999999",
+            "billingCodeDescription": "",
+            "accountManager": "null",
+            "rootNodeId": "999",
+            "name": "null",
+            "customerId": "null",
+            "parentNodeId": "999",
+            "id": "0999999",
+            "customerName": "null",
+            "serviceManager": "null"
+          },
+          "costComponent": {
+            "billingCode": "0999999",
+            "environment": "PROD",
+            "function": "",
+            "name": "Demo Name BIN",
+            "id": "MON-BAP-DEMO-BIN",
+            "type": "MON",
+            "status": "PENDING"
+          }
+        },
+        "product": {
+          "domain": "Infrastructure Services",
+          "id": "BAP-SS-MON",
+          "navision": 145.6,
+          "group": "Application Monitoring"
+        },
+        "billingCodeDescription": "Navision needed",
+        "cost": {
+          "totalCost": 145.6
+        },
+        "format": {
+          "description": "AMS: DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+          "technicalDescription": "[source:AMS][test type:soapui][tenant:demo]"
+        }
+      },
+      "costAllocationDetails": {
+        "costNodeDefinition": {
+          "baseReference": null,
+          "billingCodeConsumer": {
+            "value": "0999999",
+            "inherited": false,
+            "valueEmpty": false
+          },
+          "versioningComment": "billing code put under root customer by system",
+          "creationUser": "System",
+          "parentNodeReference": "999",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "tenantReferenceBlank": true,
+          "serviceManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "reference": "0999999",
+          "billingCodeConsumerBlank": false,
+          "accountManagerReferenceBlank": true,
+          "customerId": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "id": 12217,
+          "customerIdBlank": true,
+          "validTo": null,
+          "tenantReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerNameBlank": true,
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "accountManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerName": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "rootNodeReference": "999",
+          "isCurrent": null,
+          "serviceManagerReferenceBlank": true,
+          "name": null
+        },
+        "costAllocationDefinition": {
+          "versioningComment": "costComponent created by system with usage reference (first seen): DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+          "creationUser": "System",
+          "costComponentStatus": "In Production",
+          "costComponentEnvironment": "PROD",
+          "costComponentName": "Demo Name BIN",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "anomalies": null,
+          "isCurrent": null,
+          "costComponentFunction": "",
+          "costNodeReference": "0999999",
+          "sourceType": "MONITORING-01.00",
+          "id": 12508,
+          "costComponentReference": "MON-BAP-DEMO-BIN",
+          "validTo": null,
+          "costComponentType": "MON",
+          "status": "PENDING"
+        },
+        "customerDefinition": {}
+      }
+    },
+    "GLOBAL-INVOICE:o": {
+      "execution": {
+        "numberTreated": null,
+        "numberKo": null,
+        "creationUser": "System",
+        "runAt": "2025-09-19T16:34:47+02:00",
+        "data": null,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "usageReference": null,
+        "id": 387,
+        "outputReference": "OUT|MONITORING-01.00|FLOW_01_MONITORING|2025-09-19|P",
+        "numberToTreat": 4,
+        "flowReference": "FLOW_01_MONITORING-V0001",
+        "status": "RUNNING"
+      },
+      "usage": {
+        "reference": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+        "extractionTimestamp": "2025-09-19T17:44:50+02:00",
+        "batchReference": "DEMO-BATCH-AAA",
+        "creationUser": "System",
+        "businessTimestamp": "2025-09-19T12:44:50+02:00",
+        "sourceType": "MONITORING-01.00",
+        "processingMessage": null,
+        "id": 21243,
+        "creationDate": "2025-09-19T16:34:47+02:00",
+        "costComponentReference": "BAP-DEMO-BIN",
+        "content": {
+          "usageData": {
+            "quantity": 1,
+            "monitoringTestName": "DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+            "monitoringTestType": "soapui",
+            "monitoringTestSource": "AMS",
+            "monitoringTenantLabel": "demo"
+          },
+          "costComponent": {
+            "id": "BAP-DEMO-BIN",
+            "name": "Demo Name BIN",
+            "type": "MON",
+            "status": "In Production",
+            "function": "",
+            "billingCode": "0999999",
+            "environment": "PROD"
+          }
+        },
+        "dataDictionary": {
+          "providerBillingCode": "0036805",
+          "providerId": "568",
+          "periodicity": "daily"
+        },
+        "octopus": {
+          "node": {
+            "billingCode": "0999999",
+            "billingCodeDescription": "",
+            "accountManager": "null",
+            "rootNodeId": "999",
+            "name": "null",
+            "customerId": "null",
+            "parentNodeId": "999",
+            "id": "0999999",
+            "customerName": "null",
+            "serviceManager": "null"
+          },
+          "costComponent": {
+            "billingCode": "0999999",
+            "environment": "PROD",
+            "function": "",
+            "name": "Demo Name BIN",
+            "id": "MON-BAP-DEMO-BIN",
+            "type": "MON",
+            "status": "PENDING"
+          }
+        },
+        "product": {
+          "domain": "Infrastructure Services",
+          "id": "BAP-SS-MON",
+          "navision": 145.6,
+          "group": "Application Monitoring"
+        },
+        "billingCodeDescription": "Navision needed",
+        "cost": {
+          "totalCost": 145.6
+        },
+        "format": {
+          "description": "AMS: DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999",
+          "technicalDescription": "[source:AMS][test type:soapui][tenant:demo]"
+        },
+        "invoiceLine": {
+          "billingCodeDescription": {
+            "path": "${usage.billingCodeDescription}",
+            "value": "Navision needed"
+          },
+          "billingCodeConsumer": {
+            "path": "${costAllocationDetails.costNodeDefinition.billingCodeConsumer.value}",
+            "value": "0999999"
+          },
+          "billingCodeProvider": {
+            "path": "${usage.dataDictionary.providerBillingCode}",
+            "value": "0036805"
+          },
+          "versioningComment": {
+            "path": "${usage.format.description}",
+            "value": "AMS: DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999"
+          },
+          "costComponentName": {
+            "path": "${costAllocationDetails.costAllocationDefinition.costComponentName}",
+            "value": "Demo Name BIN"
+          },
+          "description": {
+            "path": "${usage.format.description}",
+            "value": "AMS: DEMO AAA Usage 4 - expected: CC created in octopus - CN under 999"
+          },
+          "validFrom": {
+            "path": "${execution.runAt}",
+            "value": "2025-09-19T16:34:47+02:00"
+          },
+          "productName": {
+            "path": "${costAllocationDetails.costAllocationDefinition.costComponentName}",
+            "value": "Demo Name BIN"
+          },
+          "reference": {
+            "path": "${usage.reference}",
+            "value": "DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND"
+          },
+          "batchReference": {
+            "path": "${usage.batchReference}",
+            "value": "DEMO-BATCH-AAA"
+          },
+          "billingCodeId": {
+            "path": "${}",
+            "value": null
+          },
+          "function": {
+            "path": "${costAllocationDetails.costAllocationDefinition.costComponentFunction}",
+            "value": ""
+          },
+          "customerId": {
+            "path": "${costAllocationDetails.costNodeDefinition.customerId.value}",
+            "value": null
+          },
+          "productDomain": {
+            "path": "${usage.product.domain}",
+            "value": "Infrastructure Services"
+          },
+          "costComponentType": {
+            "path": "${costAllocationDetails.costAllocationDefinition.costComponentType}",
+            "value": "MON"
+          },
+          "productionResource": {
+            "path": "${usage.dataDictionary.providerBillingCode}",
+            "value": "0036805"
+          },
+          "quantity": {
+            "path": "${usage.content.usageData.quantity}",
+            "value": 1
+          },
+          "businessTimestamp": {
+            "path": "${usage.businessTimestamp}",
+            "value": "2025-09-19T12:44:50+02:00"
+          },
+          "productId": {
+            "path": "${usage.product.id}",
+            "value": "BAP-SS-MON"
+          },
+          "anomalies": {
+            "path": "${costAllocationDetails.costAllocationDefinition.anomalies}",
+            "value": null
+          },
+          "customerName": {
+            "path": "${costAllocationDetails.costNodeDefinition.customerName.value}",
+            "value": null
+          },
+          "extractionTimestamp": {
+            "path": "${usage.extractionTimestamp}",
+            "value": "2025-09-19T17:44:50+02:00"
+          },
+          "executionId": {
+            "path": "${execution.id}",
+            "value": 387
+          },
+          "environment": {
+            "path": "${usage.content.costComponent.environment}",
+            "value": "PROD"
+          },
+          "sourceType": {
+            "path": "${usage.sourceType}",
+            "value": "MONITORING-01.00"
+          },
+          "productGroup": {
+            "path": "${usage.product.group}",
+            "value": "Application Monitoring"
+          },
+          "unitCost": {
+            "path": "${usage.product.navision}",
+            "value": 145.6
+          },
+          "providerOrgUnit": {
+            "path": "${usage.dataDictionary.providerId}",
+            "value": "568"
+          },
+          "outputReference": {
+            "path": "${execution.outputReference}",
+            "value": "OUT|MONITORING-01.00|FLOW_01_MONITORING|2025-09-19|P"
+          },
+          "costComponentReference": {
+            "path": "${costAllocationDetails.costAllocationDefinition.costComponentReference}",
+            "value": "MON-BAP-DEMO-BIN"
+          },
+          "flowReference": {
+            "path": "${execution.flowReference}",
+            "value": "FLOW_01_MONITORING-V0001"
+          },
+          "totalCost": {
+            "path": "${usage.cost.totalCost}",
+            "value": 145.6
+          },
+          "technicalDescription": {
+            "path": "${usage.format.technicalDescription}",
+            "value": "[source:AMS][test type:soapui][tenant:demo]"
+          }
+        }
+      },
+      "costAllocationDetails": {
+        "costNodeDefinition": {
+          "baseReference": null,
+          "billingCodeConsumer": {
+            "value": "0999999",
+            "inherited": false,
+            "valueEmpty": false
+          },
+          "versioningComment": "billing code put under root customer by system",
+          "creationUser": "System",
+          "parentNodeReference": "999",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "tenantReferenceBlank": true,
+          "serviceManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "reference": "0999999",
+          "billingCodeConsumerBlank": false,
+          "accountManagerReferenceBlank": true,
+          "customerId": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "id": 12217,
+          "customerIdBlank": true,
+          "validTo": null,
+          "tenantReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerNameBlank": true,
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "accountManagerReference": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "customerName": {
+            "value": null,
+            "inherited": false,
+            "valueEmpty": true
+          },
+          "rootNodeReference": "999",
+          "isCurrent": null,
+          "serviceManagerReferenceBlank": true,
+          "name": null
+        },
+        "costAllocationDefinition": {
+          "versioningComment": "costComponent created by system with usage reference (first seen): DEMO-BATCH-AAA-USAGE-4-CN-EXIST-CCA-TO-CREATE-BC-NOT-FOUND",
+          "creationUser": "System",
+          "costComponentStatus": "In Production",
+          "costComponentEnvironment": "PROD",
+          "costComponentName": "Demo Name BIN",
+          "description": null,
+          "validFrom": "2025-09-19T18:34:50+02:00",
+          "creationDate": "2025-09-19T18:34:50+02:00",
+          "anomalies": null,
+          "isCurrent": null,
+          "costComponentFunction": "",
+          "costNodeReference": "0999999",
+          "sourceType": "MONITORING-01.00",
+          "id": 12508,
+          "costComponentReference": "MON-BAP-DEMO-BIN",
+          "validTo": null,
+          "costComponentType": "MON",
+          "status": "PENDING"
+        },
+        "customerDefinition": {}
+      }
+    }
+  }
+}
