@@ -22,3 +22,5 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Remote module exports
+diagram_*.bpmn
