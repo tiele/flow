@@ -80,4 +80,46 @@ export class DagLoaderService {
       outPayload: outRef ? dag.data[outRef] : undefined
     };
   }
+
+  toRaw(dag: RuntimeDag): DagFile {
+    const nodes: Record<string, any> = {};
+    dag.nodes.forEach(n => {
+      const entry: Record<string, any> = {};
+      entry.label = n.label;
+      if (n.type !== undefined) entry.type = n.type;
+      if (n.inputs && n.inputs.length) entry.inputs = [...n.inputs];
+      if (n.outputs && n.outputs.length) entry.outputs = [...n.outputs];
+      if (n.rule) {
+        entry.rule = {
+          id: n.rule.id,
+          type: n.rule.type,
+          category: n.rule.category,
+          description: n.rule.description,
+          content: n.rule.content,
+          reference: n.rule.reference
+        };
+      }
+      nodes[n.key] = entry;
+    });
+
+    const links: Record<string, any> = {};
+    dag.links.forEach(l => {
+      links[l.id] = {
+        label: l.label,
+        source: l.source,
+        target: l.target,
+        dataReference: l.dataReference ?? null
+      };
+    });
+
+    const clusters = dag.clusters.map(c => ({
+      id: c.id,
+      label: c.label,
+      childNodeIds: [...c.childNodeIds]
+    }));
+
+    const data = { ...dag.data };
+
+    return { nodes, links, clusters, data };
+  }
 }

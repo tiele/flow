@@ -24,7 +24,38 @@
   <div class="main-layout" *ngIf="dag; else noDag">
     <div class="top-row">
       <div class="graph-zone" [style.height.px]="graphHeight">
-        <app-flow-graph [dag]="dag" (selectNode)="onSelectNode($event)"></app-flow-graph>
+        <div class="graph-toolbar">
+          <button type="button" (click)="setViewMode('graph')" [class.active]="viewMode==='graph'">Graph</button>
+          <button type="button" (click)="setViewMode('json')" [class.active]="viewMode==='json'">JSON</button>
+          <button
+            type="button"
+            class="edit-toggle"
+            (click)="toggleEditConnections()"
+            [disabled]="viewMode!=='graph'"
+            [class.active]="editConnections">
+            {{ editConnections ? 'Editing connections' : 'Edit connections' }}
+          </button>
+        </div>
+        <div class="graph-content" *ngIf="viewMode==='graph'">
+          <app-flow-graph
+            [dag]="dag"
+            [editMode]="editConnections"
+            (selectNode)="onSelectNode($event)"
+            (addLink)="onAddLink($event)"
+            (removeLink)="onRemoveLink($event)">
+          </app-flow-graph>
+        </div>
+        <div class="json-content" *ngIf="viewMode==='json'">
+          <textarea
+            [(ngModel)]="dagJsonText"
+            (ngModelChange)="onDagJsonChange($event)"
+            spellcheck="false"
+            placeholder="Edit DAG JSON"></textarea>
+          <div class="json-actions">
+            <button type="button" (click)="applyDagJson()">Apply JSON</button>
+            <span class="error" *ngIf="dagJsonError">{{ dagJsonError }}</span>
+          </div>
+        </div>
       </div>
       <app-node-inspector
         [dag]="dag"

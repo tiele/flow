@@ -2,6 +2,7 @@ import {
   AfterViewInit, Component, ElementRef, EventEmitter, Input,
   OnChanges, OnDestroy, Output, SimpleChanges, ViewChild
 } from '@angular/core';
+import { NgIf } from '@angular/common';
 
 // Use ESM-style imports compatible with Angular's TS config
 import cytoscape from 'cytoscape';
@@ -15,16 +16,22 @@ import { Cluster, RuntimeDag } from '../models';
 @Component({
   selector: 'app-flow-graph',
   standalone: true,
+  imports: [NgIf],
   templateUrl: './flow-graph.component.html',
   styleUrls: ['./flow-graph.component.scss']
 })
 export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
   @Input() dag?: RuntimeDag;
+  @Input() editMode = false;
   @Output() selectNode = new EventEmitter<string>();
+  @Output() addLink = new EventEmitter<{ source: string; target: string }>();
+  @Output() removeLink = new EventEmitter<string>();
   @ViewChild('cyHost', { static: true }) cyHost!: ElementRef<HTMLDivElement>;
 
   private cy?: cytoscape.Core;
   private resizeObs?: ResizeObserver;
+  private pendingSourceId?: string;
+  private pendingSourceNode?: cytoscape.NodeSingular;
 
   ngAfterViewInit() {
     if (this.dag) this.build();
@@ -33,8 +40,15 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
       this.cy?.resize();
     });
     this.resizeObs.observe(this.cyHost.nativeElement);
+    this.updateEditModeState();
   }
-  ngOnChanges(ch: SimpleChanges) { if (ch['dag'] && this.cy) this.build(); }
+  ngOnChanges(ch: SimpleChanges) {
+    if (ch['dag']) {
+      this.clearPendingSource();
+      if (this.cy) this.build();
+    }
+    if (ch['editMode']) this.updateEditModeState();
+  }
   ngOnDestroy() { this.resizeObs?.disconnect(); this.cy?.destroy(); }
 
   private build() {
@@ -76,11 +90,69 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
     layout.one('layoutstop', () => this.positionIsolatedNodes());
     layout.run();
 
-    this.cy!.on('tap', 'node', (evt: cytoscape.EventObject) => {
-      const id = (evt.target as cytoscape.NodeSingular).id();
-      if (evt.target.data('isCluster')) return;
-      this.selectNode.emit(id);
+    this.cy!.on('tap', 'node', (evt: cytoscape.EventObject) => this.onNodeTap(evt));
+    this.cy!.on('tap', 'edge', (evt: cytoscape.EventObject) => this.onEdgeTap(evt));
+    this.cy!.on('tap', (evt: cytoscape.EventObject) => {
+      if (evt.target === this.cy) this.clearPendingSource();
     });
+  }
+
+  private onNodeTap(evt: cytoscape.EventObject) {
+    const node = evt.target as cytoscape.NodeSingular;
+    if (node.data('isCluster')) return;
+    if (this.editMode) {
+      this.handleEditNodeTap(node);
+      return;
+    }
+    this.clearPendingSource();
+    this.selectNode.emit(node.id());
+  }
+
+  private onEdgeTap(evt: cytoscape.EventObject) {
+    if (!this.editMode) return;
+    evt.preventDefault();
+    evt.stopPropagation();
+    const edge = evt.target as cytoscape.EdgeSingular;
+    this.removeLink.emit(edge.id());
+  }
+
+  private handleEditNodeTap(node: cytoscape.NodeSingular) {
+    const nodeId = node.id();
+    if (!this.pendingSourceId) {
+      this.setPendingSource(node);
+      return;
+    }
+    if (this.pendingSourceId === nodeId) {
+      this.clearPendingSource();
+      return;
+    }
+    const source = this.pendingSourceId;
+    const target = nodeId;
+    if (source === target) {
+      this.clearPendingSource();
+      return;
+    }
+    if (this.dag?.links.some(l => l.source === source && l.target === target)) {
+      this.clearPendingSource();
+      return;
+    }
+    this.addLink.emit({ source, target });
+    this.clearPendingSource();
+  }
+
+  private setPendingSource(node?: cytoscape.NodeSingular) {
+    if (this.pendingSourceNode) this.pendingSourceNode.removeClass('pending-link-source');
+    this.pendingSourceNode = node;
+    this.pendingSourceId = node?.id();
+    if (this.pendingSourceNode) this.pendingSourceNode.addClass('pending-link-source');
+  }
+
+  private clearPendingSource() {
+    this.setPendingSource(undefined);
+  }
+
+  private updateEditModeState() {
+    if (!this.editMode) this.clearPendingSource();
   }
 
   private positionIsolatedNodes() {
@@ -156,6 +228,11 @@ export class FlowGraphComponent implements AfterViewInit, OnChanges, OnDestroy {
           'border-color': '#0ea5e9',
           'border-width': 3,
           'background-color': '#e0f2fe'
+      }},
+      { selector: 'node.pending-link-source', style: {
+          'border-color': '#f97316',
+          'border-width': 4,
+          'background-color': '#fff7ed'
       }},
       // Global badge (default gray), positioned bottom-right
       { selector: 'node[isGlobal = 1]', style: {

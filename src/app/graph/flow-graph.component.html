@@ -1,1 +1,6 @@
-<div #cyHost class="cy-host" aria-label="Flow graph"></div>
+<div class="graph-shell" [class.edit-mode]="editMode">
+  <div #cyHost class="cy-host" aria-label="Flow graph"></div>
+  <div class="edit-hint" *ngIf="editMode">
+    Select a source node, then a target node to create a link. Tap an edge to remove it.
+  </div>
+</div>

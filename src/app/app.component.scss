@@ -15,7 +15,98 @@
 
 .main-layout { display: flex; flex-direction: column; gap: 10px; }
 .top-row { display: grid; grid-template-columns: 1fr 0.9fr; gap: 10px; align-items: start; }
-.graph-zone { min-height: 180px; border-radius: 18px; overflow: hidden; background:#fff; border: 1px solid #e6eaf0; }
+.graph-zone {
+  min-height: 180px;
+  border-radius: 18px;
+  overflow: hidden;
+  background:#fff;
+  border: 1px solid #e6eaf0;
+  display: flex;
+  flex-direction: column;
+}
+.graph-zone .graph-toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 10px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e6eaf0;
+}
+.graph-zone .graph-toolbar button {
+  height: 28px;
+  padding: 0 12px;
+  border-radius: 999px;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.graph-zone .graph-toolbar button.active {
+  background: #2563eb;
+  color: #fff;
+  border-color: #1d4ed8;
+}
+.graph-zone .graph-toolbar button.edit-toggle {
+  margin-left: auto;
+  background: #f8fafc;
+}
+.graph-zone .graph-toolbar button.edit-toggle.active {
+  background: #f97316;
+  border-color: #ea580c;
+  color: #fff;
+}
+.graph-zone .graph-toolbar button.edit-toggle:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  background: #e2e8f0;
+  color: #475569;
+  border-color: #cbd5e1;
+}
+.graph-zone .graph-content,
+.graph-zone .json-content {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+.graph-zone .graph-content app-flow-graph {
+  flex: 1;
+  display: block;
+}
+.graph-zone .json-content {
+  padding: 10px;
+  gap: 10px;
+  flex-direction: column;
+}
+.graph-zone .json-content textarea {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  padding: 10px;
+  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  resize: none;
+  background: #fbfcfe;
+}
+.graph-zone .json-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.graph-zone .json-actions button {
+  height: 32px;
+  border-radius: 999px;
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+  padding: 0 18px;
+  cursor: pointer;
+  font-weight: 600;
+}
+.graph-zone .json-actions .error {
+  color: #dc2626;
+  font-size: 0.85rem;
+}
 .resizer { height: 10px; cursor: row-resize; position: relative; display: flex; align-items: center; justify-content: center; }
 .resizer::before { content: ""; position: absolute; left: 0; right: 0; height: 1px; background: #e5e7eb; }
 .resizer .grip { width: 56px; height: 6px; border-radius: 999px; background: #cbd5e1; box-shadow: inset 0 1px 0 rgba(255,255,255,.6); }

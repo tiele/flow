@@ -3,7 +3,7 @@ import { DagLoaderService } from './dag-loader.service';
 import { FlowGraphComponent } from './graph/flow-graph.component';
 import { NodeInspectorComponent } from './inspector/node-inspector.component';
 import { DiffViewerComponent } from './inspector/diff-viewer.component';
-import { RuntimeDag } from './models';
+import { DagFile, DagLink, RuntimeDag } from './models';
 import { NgIf, JsonPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -23,11 +23,19 @@ export class AppComponent {
   inPayload?: any;
   outPayload?: any;
   focusPaths?: string[];
+  viewMode: 'graph' | 'json' = 'graph';
+  dagJsonText = '';
+  dagJsonError?: string;
+  private dagJsonDirty = false;
+  editConnections = false;
 
   constructor(private loader: DagLoaderService) {}
 
   async loadSample() {
     this.dag = await this.loader.loadFromUrl('assets/output_poseidon.json');
+    this.selectedKey = undefined;
+    this.clearSelectionState();
+    this.refreshDagJson(true);
   }
 
   async onPickFile(ev: Event) {
@@ -36,6 +44,8 @@ export class AppComponent {
     if (!file) return;
     this.dag = await this.loader.loadFromFile(file);
     this.selectedKey = undefined;
+    this.clearSelectionState();
+    this.refreshDagJson(true);
   }
 
   onSelectNode(key: string) {
@@ -99,6 +109,7 @@ export class AppComponent {
       this.inPayload = io.inPayload;
       this.outPayload = io.outPayload;
     }
+    this.refreshDagJson();
   }
 
   private dragging = false;
@@ -126,5 +137,159 @@ export class AppComponent {
     this.dragging = false;
     document.removeEventListener('mousemove', move);
     document.body.classList.remove('resizing-row');
+  }
+
+  setViewMode(mode: 'graph' | 'json') {
+    if (mode === this.viewMode) return;
+    if (this.viewMode === 'json' && mode === 'graph' && this.dagJsonDirty) {
+      const applied = this.applyDagJsonInternal();
+      if (!applied) {
+        this.viewMode = 'json';
+        return;
+      }
+    }
+    this.viewMode = mode;
+    if (mode === 'json') {
+      this.editConnections = false;
+      this.refreshDagJson(true);
+      this.dagJsonError = undefined;
+    }
+  }
+
+  onDagJsonChange(value: string) {
+    this.dagJsonText = value;
+    this.dagJsonDirty = true;
+    this.dagJsonError = undefined;
+  }
+
+  applyDagJson() {
+    this.applyDagJsonInternal();
+  }
+
+  toggleEditConnections() {
+    if (this.viewMode !== 'graph') return;
+    this.editConnections = !this.editConnections;
+  }
+
+  onAddLink(e: { source: string; target: string }) {
+    if (!this.dag) return;
+    const { source, target } = e;
+    if (this.dag.links.some(l => l.source === source && l.target === target)) return;
+    const id = this.generateLinkId();
+    const newLink: DagLink = { id, source, target, dataReference: null };
+    const links = [...this.dag.links, newLink];
+    const nodes = this.dag.nodes.map(n => {
+      if (n.key === source) {
+        const outputs = this.addToList(n.outputs, id);
+        return { ...n, outputs };
+      }
+      if (n.key === target) {
+        const inputs = this.addToList(n.inputs, id);
+        return { ...n, inputs };
+      }
+      return n;
+    });
+    this.dag = { ...this.dag, links, nodes };
+    this.refreshDagJson();
+    this.reconcileSelection();
+  }
+
+  onRemoveLink(linkId: string) {
+    if (!this.dag) return;
+    const link = this.dag.links.find(l => l.id === linkId);
+    if (!link) return;
+    const links = this.dag.links.filter(l => l.id !== linkId);
+    const nodes = this.dag.nodes.map(n => {
+      if (n.key === link.source) {
+        const outputs = (n.outputs ?? []).filter(id => id !== linkId);
+        return { ...n, outputs };
+      }
+      if (n.key === link.target) {
+        const inputs = (n.inputs ?? []).filter(id => id !== linkId);
+        return { ...n, inputs };
+      }
+      return n;
+    });
+    this.dag = { ...this.dag, links, nodes };
+    this.refreshDagJson();
+    this.reconcileSelection();
+  }
+
+  private applyDagJsonInternal(): boolean {
+    const text = this.dagJsonText.trim();
+    if (!text) {
+      this.dag = undefined;
+      this.selectedKey = undefined;
+      this.clearSelectionState();
+      this.dagJsonError = undefined;
+      this.dagJsonDirty = false;
+      this.editConnections = false;
+      return true;
+    }
+    try {
+      const raw = JSON.parse(text) as DagFile;
+      const normalized = this.loader.normalize(raw);
+      this.dag = normalized;
+      this.dagJsonError = undefined;
+      this.dagJsonDirty = false;
+      this.refreshDagJson(true);
+      this.reconcileSelection();
+      return true;
+    } catch (err: any) {
+      const message = err?.message ?? 'Invalid DAG JSON';
+      this.dagJsonError = `Invalid DAG JSON: ${message}`;
+      return false;
+    }
+  }
+
+  private refreshDagJson(force = false) {
+    if (!this.dag) {
+      this.dagJsonText = '';
+      this.dagJsonDirty = false;
+      return;
+    }
+    if (!force && this.viewMode === 'json' && this.dagJsonDirty) {
+      return;
+    }
+    const raw = this.loader.toRaw(this.dag);
+    this.dagJsonText = JSON.stringify(raw, null, 2);
+    this.dagJsonDirty = false;
+  }
+
+  private reconcileSelection() {
+    if (!this.dag) {
+      this.selectedKey = undefined;
+      this.clearSelectionState();
+      return;
+    }
+    if (this.selectedKey && this.dag.nodes.some(n => n.key === this.selectedKey)) {
+      this.onSelectNode(this.selectedKey);
+    } else {
+      this.selectedKey = undefined;
+      this.clearSelectionState();
+    }
+  }
+
+  private clearSelectionState() {
+    this.inPayload = undefined;
+    this.outPayload = undefined;
+    this.focusPaths = undefined;
+  }
+
+  private generateLinkId(): string {
+    const used = new Set(this.dag?.links.map(l => l.id) ?? []);
+    let counter = (this.dag?.links.length ?? 0) + 1;
+    let candidate = `link-${counter}`;
+    while (used.has(candidate)) {
+      counter++;
+      candidate = `link-${counter}`;
+    }
+    return candidate;
+  }
+
+  private addToList(list: string[] | undefined, value: string): string[] {
+    const next = [...(list ?? [])];
+    if (!next.includes(value)) next.push(value);
+    return next;
   }
 }
