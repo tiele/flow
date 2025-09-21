@@ -1,0 +1,564 @@
+openapi: 3.0.0
+info:
+  version: 1.0.0
+  title: Cost Allocation Rules Processing API REST Service
+  description: Service that allows retrieving a list of usage batches. Useful for reviewing and managing grouped usage data submissions.
+externalDocs:
+  description: Confluence Page
+  url: https://confluence.smals.be/display/POSEIDON/Poseidon
+servers:
+  - url: http://localhost:8080/REST/costAllocationRulesProcessing/v1
+tags:
+  - name: Usage Data
+    description: Ingest customer usage data, providing the foundation for billing by capturing consumption details
+  - name: Technical
+    description: Handle maintenance tasks including documentation and REST endpoint monitoring
+
+paths:
+  /usageBatches:
+    get:
+      tags:
+        - "Usage Data"
+      summary: List of usage batches
+      description: Endpoint that allows retrieving a list of usage batches, optionally filtered by source, cost component, creation date, or batch reference. Useful for reviewing and managing grouped usage data submissions.
+      operationId: getBatches
+      parameters:
+        - name: sourceReference
+          in: query
+          description: Identifies the origin system or source for the usage batch
+          schema:
+            type: string
+            example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851-01'
+        - name: sourceType
+          in: query
+          schema:
+            description: This code will determine business rules that will be executed in poseidon. By convention use the cost component type, data usage type and version separated by -
+            type: string
+            pattern: '^[a-zA-Z0-9-_]+-[a-zA-Z0-9-_]+-[0-9.]+$'
+            example: MON-MONITORING-1.13
+        - name: costComponentReference
+          in: query
+          description: unique name to designate the cost component
+          schema:
+            type: string
+            example: 'BAP-WS-INSPECTION_KNOWLEDGEMANAGEMENT-ACC'
+        - name: createdFrom
+          in: query
+          description: Filter batches created on or after the specified date
+          schema:
+            type: string
+            format: datetime
+        - name: createdTo
+          in: query
+          description: Filter usage data by creation date up to this date (inclusive)
+          schema:
+            type: string
+            format: datetime
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+            - scope:sma-idp-poseidon-consult
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: Successfully retrieved the requested data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageBatches'
+        '404':
+          description: No matching usage data found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Unexpected error occurred
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+    
+    post:
+      tags:
+        - "Usage Data"
+      summary: Accepts new usage data in batch
+      description: Endpoint that allows submitting a batch of usage data, enabling clients to send multiple usage records in a single request for more efficient processing.
+      operationId: postBatch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UsageBatch'
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+      x-oauth2-required-scopes: any
+      responses:
+        '204':
+          description: successful with no content
+        '400':
+          description: Bad Request, input being invalid or malformed
+          content:
+            application/problem+json:
+              example:
+                type: "urn:problem-type:badRequest"
+                href: "http://poseidon.internal.smals.be/specification/rest/api-guide/problems/badRequest.html"
+                title: "incorrect JSON formatting"
+                status: 400
+                detail: "Request cannot be processed due to the client's input being invalid or malformed"
+                instance: "urn:uuid:123e4567-e89b-12d3-a456-426614174000"
+                limit: 10485760  # Additional properties specific to the problem type are allowed
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '413':
+          description: Content Too Large
+          content:
+            application/problem+json:
+              example:
+                type: "http://gcloud.belgium.be/rest/problems"
+                href: null,
+                title: "Content Too Large"
+                status: 413,
+                detail: "USG006"
+                instance: "null"
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              example:
+                type: "urn:problem-type:internalServerError"
+                href: "http://poseidon.internal.smals.be/specification/rest/api-guide/problems/internalServerError.html"
+                title: "Internal Server Error"
+                status: 500
+                detail: "An unexpected error occurred on the server while processing the request. Please retry the request later."
+                instance: "urn:uuid:123e4567-e89b-12d3-a456-426614174000"
+                limit: 10485760  # Additional properties specific to the problem type are allowed
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Default
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+  /usageBatches/{reference}:
+    get:
+      tags:
+        - "Usage Data"
+      summary: List of usage batches
+      description: Endpoint that allows retrieving a specific usage batch, identified by its unique reference. Provides visibility into the contents and metadata of a given usage batch.
+      operationId: getBatch
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          description: The reference to the batch that contains the usage data to filter by
+          schema:
+            type: string
+            example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851-0000'
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+            - scope:sma-idp-poseidon-consult
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: Successfully retrieved the requested data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageBatch'
+        '404':
+          description: No matching usage data found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Unexpected error occurred
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+  /usages:
+    get:
+      tags:
+        - "Usage Data"
+      summary: Retrieve usages
+      description: Endpoint that allows retrieving individual usage records, with support for filters such as subscription, batch, cost component, and timestamp, to facilitate granular analysis of consumption data.
+      operationId: getUsages
+      parameters:
+        - name: sourceType
+          in: query
+          schema:
+            description: This code will determine business rules that will be executed in poseidon. By convention use the cost component type, data usage type and version separated by -
+            type: string
+            pattern: '^[a-zA-Z0-9-_]+-[a-zA-Z0-9-_]+-[0-9.]+$'
+            example: MON-MONITORING-1.13
+        - name: batchReference
+          in: query
+          description: Filters results by usage batch reference
+          schema:
+            type: string
+            example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851'
+        - name: costComponentReference
+          in: query
+          description: unique name to designate the cost component
+          schema:
+            type: string
+            example: 'BAP-WS-INSPECTION_KNOWLEDGEMANAGEMENT-ACC'
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+            - scope:sma-idp-poseidon-consult
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: Successfully retrieved the requested data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usages'
+        '400':
+          description: 'Invalid request: missing or incorrect parameters'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: No matching usage data found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal server error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Unexpected error occurred
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+  /usages/{reference}:
+    get:
+      tags:
+        - "Usage Data"
+      summary: Retrieve usage data
+      description: Endpoint that allows retrieving detailed information about a specific usage record, using a unique reference identifier for precise inspection or auditing purposes.
+      operationId: getUsageData
+      parameters:
+        - name: reference
+          in: path
+          required: true
+          description: reference received by the external source to identify the usage
+          schema:
+            type: string
+            example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851-000000001'
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+            - scope:sma-idp-poseidon-consult
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: Successfully retrieved the requested data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Usage'
+        '400':
+          description: 'Invalid request: missing or incorrect parameters'
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '404':
+          description: No matching usage data found
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        '500':
+          description: Internal Server Error
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+        default:
+          description: Unexpected error occurred
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+  /doc/openapi.yaml:
+    get:
+      tags:
+        - "Technical"
+      description: Endpoint that allows retrieving the full API documentation, in OpenAPI (Swagger) YAML format, for integration, tooling, or development purposes.
+      operationId: getSwagger
+      parameters: [ ]
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-admin
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/yaml:
+              schema:
+                type: string
+                format: binary
+        default:
+          description: Default
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  
+  /health:
+    get:
+      tags:
+        - "Technical"
+      summary: "Check health of this REST API"
+      description: Endpoint that allows checking the operational health of the API, used by monitoring or supervision systems to verify availability and responsiveness.
+      operationId: "healthCheck"
+      parameters:
+        - name: "type"
+          in: "query"
+          description: "Defines which sanity checks must be run"
+          schema:
+            type: string
+      security:
+        - Oauth:
+            - scope:sma-idp-poseidon-monitoring
+      x-oauth2-required-scopes: any
+      responses:
+        '200':
+          description: The service is UP
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        '503':
+          description: Service Unavailable
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthStatus'
+        default:
+          description: Problem with health check
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+
+components:
+  schemas:
+    
+    HealthStatus:
+      description: Response message for the API health
+      type: object
+      properties:
+        status:
+          $ref: "#/components/schemas/HealthLevel"
+        details:
+          type: object
+    
+    HealthLevel:
+      description: Level indicating the health status of the service
+      type: string
+      x-ignore-rules:
+        cod-design: Exempt existing code from lowerCamelCase rule
+        #"rule identifier": "motivation for ignoring the rule"  (rule identifier can be found in violation error message)
+      enum:
+        - UP # is functioning as expected
+        - DEGRADED # is partly unavailable but service can be continued with reduced functionality
+        - DOWN # is suffering unexpected failures
+    
+    Usage:
+      description: Information about clients consumption
+      type: object
+      properties:
+        reference:
+          description: a reference composed of letters and digits, referencing an external key or user input
+          type: string
+          pattern: '^[a-zA-Z0-9-_]+$'
+          example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851-000000001'
+        batchReference:
+          description: Parent usageBatch from which the usage came
+          readOnly: true
+          type: string
+          pattern: '^[a-zA-Z0-9-_]+$'
+          example: '3e93da13-cdfc-48f9-9b1e-3682af8fb851-0000'
+        sourceType:
+          readOnly: true
+          description: This code will determine business rules that will be executed in poseidon. By convention use the cost component type, data usage type and version separated by -
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+-[0-9.]+$'
+          example: MON-MONITORING-1.13
+        businessTimestamp:
+          type: string
+          format: datetime
+          example: "2016-04-24T11:26:00+01:00"
+        extractionTimestamp:
+          description: Time where usage data arrived at rest endpoint
+          readOnly: true
+          type: string
+          format: datetime
+          example: "2016-04-24T11:26:00+01:00"
+        costComponentReference:
+          description: Reference to the cost component
+          type: string
+          example: "BAP-DATAACCESSTRACING-PROCESSING"
+        content:
+          type: object
+          description: content of the source type
+          additionalProperties:
+            type: object
+        creationDate:
+          type: string
+          format: datetime
+    
+    Usages:
+      type: object
+      description: List of Usage
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Usage'
+    
+    UsageBatch:
+      type: object
+      description: A collection of billing data entries. If you need to split a set of data in several batches, use the same sourceReference, sourceType and extractionTimestamp but a different reference.
+      properties:
+        reference:
+          description: The reference identifies the usage batch that has been sent. If this reference matches an existing batch, all data associated with that specific reference (including the UsageBatch entry, Usage records, and any derived InvoiceLines) will be deleted and replaced by the new submission. Use a unique reference for each distinct batch.
+          type: string
+          example: "3e93da13-cdfc-48f9-9b1e-3682af8fb851-0000"
+        sourceReference:
+          description: The content to the source of the usage batch that has been made
+          type: string
+          example: "3e93da13-cdfc-48f9-9b1e-3682af8fb851"
+        sourceType:
+          description: This code will determine business rules that will be executed in poseidon. By convention use the cost component type, data usage type and version separated by -
+          type: string
+          pattern: '^[a-zA-Z0-9_-]+-[0-9.]+$'
+          example: MON-MONITORING-1.13
+        extractionTimestamp:
+          type: string
+          format: datetime
+          example: "2016-04-24T11:26:00+01:00"
+        usages:
+          type: array
+          writeOnly: true
+          items:
+            $ref: '#/components/schemas/Usage'
+        executionStatus:
+          description: The status of a potential execution of the batch
+          type: string
+          example: "ACTIVE"
+        processingMessage:
+          type: object
+          description: A standardized error code, an explicit reference to the relevant data, and a contextualized description of the error.
+          additionalProperties:
+            type: object
+        numberOfUsages:
+          type: integer
+        creationDate:
+          type: string
+          format: datetime
+      required:
+        - reference
+    
+    UsageBatches:
+      type: object
+      description: List of UsageBatch
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/UsageBatch'
+    
+    Problem:
+      description: A Problem Details object (RFC 7807)
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: >
+            A URI reference that identifies the problem type. When dereferenced,
+            it SHOULD provide human-readable documentation for the problem type (e.g., using HTML).
+          default: "about:blank"
+        href:
+          type: string
+          format: uri
+          description: >
+            An absolute URI that, when dereferenced, provides human-readable documentation for the problem type.
+        title:
+          type: string
+          description: >
+            A short summary of the problem type. Written in English and readable for engineers
+            (usually not suited for non-technical stakeholders and not localized).
+        status:
+          type: integer
+          format: int32
+          description: >
+            The HTTP status code generated by the origin server for this occurrence of the problem.
+          minimum: 400
+          maximum: 599
+        detail:
+          type: string
+          description: A human-readable explanation specific to this occurrence of the problem
+        instance:
+          type: string
+          format: uri
+          description: >
+            A URI reference that identifies the specific occurrence of the problem.
+            It may or may not yield further information if dereferenced.
+      example:
+        type: "urn:problem-type:payloadTooLarge"
+        href: "http://poseidon.internal.smals.be/specification/rest/api-guide/problems/payloadTooLarge.html"
+        title: "Payload Too Large"
+        status: 400
+        detail: "Request message must not be larger than 10 MB. If you need to split a set of data in several batches, use the same sourceReference, sourceType and extractionTimestamp but a different reference"
+        instance: "urn:uuid:123e4567-e89b-12d3-a456-426614174000"
+        limit: 10485760  # Additional properties specific to the problem type are allowed
+  
+  securitySchemes:
+    Oauth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'https://oauth-v5.socialsecurity.be/oauth2/authorize'
+          scopes:
+            'scope:sma-idp-poseidon-monitoring': monitoring scope
+            'scope:sma-idp-poseidon-consult': consult scope
+            'scope:sma-idp-poseidon-responsible': responsible scope
+            'scope:sma-idp-poseidon-admin': admin scope

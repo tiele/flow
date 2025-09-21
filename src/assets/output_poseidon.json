@@ -20,7 +20,7 @@
                 "id": 15,
                 "creationDate": [
                     2025,
-                    6, 
+                    6,
                     20,
                     15,
                     34,
@@ -204,7 +204,7 @@
                 "content": {
                     "enrich": [
                         {
-                            "key": "usage.content.costAllocationDetails",
+                            "key": "usage.costAllocationDetails",
                             "value": {
                                 "op": "octopusLookup",
                                 "args": [
@@ -301,10 +301,10 @@
                                 "op": "multiply",
                                 "args": [
                                     {
-                                        "var": "${usage.content.usageData.quantity}"
+                                        "var": "usage.content.usageData.quantity"
                                     },
                                     {
-                                        "var": "${usage.product.navision}"
+                                        "var": "usage.product.navision"
                                     }
                                 ]
                             }
@@ -360,7 +360,7 @@
                             "value": "${usage.content.usageData.monitoringTestSource}: ${usage.content.usageData.monitoringTestName}"
                         },
                         {
-                            "key": "usage.content.technicalDescription",
+                            "key": "usage.format.technicalDescription",
                             "value": "${usage.content.costComponent.id}  ${usage.content.usageData.monitoringTestName}"
                         }
                     ]
@@ -439,15 +439,15 @@
                 ],
                 "sourceType": null,
                 "processingMessage": null,
-                "id": 14123,
+                "id": 14164,
                 "creationDate": [
                     2025,
                     8,
-                    28,
-                    15,
-                    26,
-                    33,
-                    895657000
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
                 ],
                 "costComponentReference": "BAP-LEGALPROCESSMANAGER",
                 "content": {
@@ -485,15 +485,15 @@
                 ],
                 "sourceType": null,
                 "processingMessage": null,
-                "id": 14123,
+                "id": 14164,
                 "creationDate": [
                     2025,
                     8,
-                    28,
-                    15,
-                    26,
-                    33,
-                    895657000
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
                 ],
                 "costComponentReference": "BAP-LEGALPROCESSMANAGER",
                 "content": {
@@ -512,11 +512,6 @@
                         "billingCode": "0500985",
                         "environment": "PROD"
                     }
-                },
-                "dataDictionary": {
-                    "providerBillingCode": "0036805",
-                    "providerId": "568",
-                    "periodicity": "daily"
                 }
             }
         },
@@ -536,15 +531,15 @@
                 ],
                 "sourceType": null,
                 "processingMessage": null,
-                "id": 14123,
+                "id": 14164,
                 "creationDate": [
                     2025,
                     8,
-                    28,
-                    15,
-                    26,
-                    33,
-                    895657000
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
                 ],
                 "costComponentReference": "BAP-LEGALPROCESSMANAGER",
                 "content": {
@@ -569,50 +564,6 @@
                     "providerId": "568",
                     "periodicity": "daily"
                 }
-            },
-            "costAllocationDetails": {
-                "costNodeDefinition": {
-                    "reference": "0500985",
-                    "rootNodeReference": "999",
-                    "billingCodeConsumer": {
-                        "value": "0500985",
-                        "inherited": false,
-                        "valueEmpty": false
-                    },
-                    "tenantReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "parentNodeReference": "999",
-                    "name": null,
-                    "customerId": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "accountManagerReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "serviceManagerReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    }
-                },
-                "costAllocationDefinition": {
-                    "costComponentFunction": "",
-                    "sourceType": "",
-                    "costComponentEnvironment": "PROD",
-                    "costComponentStatus": "In Production",
-                    "costComponentName": "null",
-                    "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
-                    "costComponentType": "null",
-                    "status": "PENDING"
-                },
-                "customerDefinition": {}
             }
         },
         "GLOBAL-ALLOCATION:o": {
@@ -631,15 +582,15 @@
                 ],
                 "sourceType": null,
                 "processingMessage": null,
-                "id": 14123,
+                "id": 14164,
                 "creationDate": [
                     2025,
                     8,
-                    28,
-                    15,
-                    26,
-                    33,
-                    895657000
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
                 ],
                 "costComponentReference": "BAP-LEGALPROCESSMANAGER",
                 "content": {
@@ -663,51 +614,263 @@
                     "providerBillingCode": "0036805",
                     "providerId": "568",
                     "periodicity": "daily"
+                },
+                "costAllocationDetails": {
+                    "costNodeDefinition": {
+                        "reference": "0500985",
+                        "rootNodeReference": "999",
+                        "billingCodeConsumer": {
+                            "value": "0500985",
+                            "inherited": false,
+                            "valueEmpty": false
+                        },
+                        "tenantReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "parentNodeReference": "999",
+                        "name": null,
+                        "customerId": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "accountManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "serviceManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        }
+                    },
+                    "costAllocationDefinition": {
+                        "costComponentFunction": "",
+                        "sourceType": "",
+                        "costComponentEnvironment": "PROD",
+                        "costComponentStatus": "In Production",
+                        "costComponentName": "null",
+                        "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
+                        "costComponentType": "null",
+                        "status": "PENDING"
+                    },
+                    "customerDefinition": {}
                 }
-            },
-            "costAllocationDetails": {
-                "costNodeDefinition": {
-                    "reference": "0500985",
-                    "rootNodeReference": "999",
-                    "billingCodeConsumer": {
-                        "value": "0500985",
-                        "inherited": false,
-                        "valueEmpty": false
+            }
+        },
+        "BAP-SS-MON-PRICING:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14164,
+                "creationDate": [
+                    2025,
+                    8,
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
                     },
-                    "tenantReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "parentNodeReference": "999",
-                    "name": null,
-                    "customerId": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "accountManagerReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
-                    },
-                    "serviceManagerReference": {
-                        "value": null,
-                        "inherited": false,
-                        "valueEmpty": true
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
                     }
                 },
-                "costAllocationDefinition": {
-                    "costComponentFunction": "",
-                    "sourceType": "",
-                    "costComponentEnvironment": "PROD",
-                    "costComponentStatus": "In Production",
-                    "costComponentName": "null",
-                    "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
-                    "costComponentType": "null",
-                    "status": "PENDING"
+                "dataDictionary": {
+                    "providerBillingCode": "0036805",
+                    "providerId": "568",
+                    "periodicity": "daily"
                 },
-                "customerDefinition": {}
+                "costAllocationDetails": {
+                    "costNodeDefinition": {
+                        "reference": "0500985",
+                        "rootNodeReference": "999",
+                        "billingCodeConsumer": {
+                            "value": "0500985",
+                            "inherited": false,
+                            "valueEmpty": false
+                        },
+                        "tenantReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "parentNodeReference": "999",
+                        "name": null,
+                        "customerId": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "accountManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "serviceManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        }
+                    },
+                    "costAllocationDefinition": {
+                        "costComponentFunction": "",
+                        "sourceType": "",
+                        "costComponentEnvironment": "PROD",
+                        "costComponentStatus": "In Production",
+                        "costComponentName": "null",
+                        "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
+                        "costComponentType": "null",
+                        "status": "PENDING"
+                    },
+                    "customerDefinition": {}
+                },
+                "product": {
+                    "domain": "Infrastructure Services",
+                    "id": "BAP-SS-MON",
+                    "navision": 100,
+                    "group": "Application Monitoring"
+                },
+                "cost": {
+                    "totalCost": 100.0
+                }
+            }
+        },
+        "BAP-SS-MON-FORMAT:o": {
+            "usage": {
+                "reference": "58effc22-770f-4149-a921-2c0ae7f8b136-000001619",
+                "extractionTimestamp": null,
+                "batchReference": "58effc22-770f-4149-a921-2c0ae7f8b136-0000",
+                "creationUser": "System",
+                "businessTimestamp": [
+                    2025,
+                    8,
+                    26,
+                    14,
+                    44,
+                    50
+                ],
+                "sourceType": null,
+                "processingMessage": null,
+                "id": 14164,
+                "creationDate": [
+                    2025,
+                    8,
+                    29,
+                    16,
+                    31,
+                    9,
+                    46397000
+                ],
+                "costComponentReference": "BAP-LEGALPROCESSMANAGER",
+                "content": {
+                    "usageData": {
+                        "quantity": 1,
+                        "monitoringTestName": "WebService legalProcessManager (Prod)",
+                        "monitoringTestType": "soapui",
+                        "monitoringTestSource": "AMS"
+                    },
+                    "costComponent": {
+                        "id": "BAP-LEGALPROCESSMANAGER",
+                        "name": "WebService LegalProcessManager (Production)",
+                        "type": "MON",
+                        "status": "In Production",
+                        "function": "",
+                        "billingCode": "0500985",
+                        "environment": "PROD"
+                    }
+                },
+                "dataDictionary": {
+                    "providerBillingCode": "0036805",
+                    "providerId": "568",
+                    "periodicity": "daily"
+                },
+                "costAllocationDetails": {
+                    "costNodeDefinition": {
+                        "reference": "0500985",
+                        "rootNodeReference": "999",
+                        "billingCodeConsumer": {
+                            "value": "0500985",
+                            "inherited": false,
+                            "valueEmpty": false
+                        },
+                        "tenantReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "parentNodeReference": "999",
+                        "name": null,
+                        "customerId": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "accountManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        },
+                        "serviceManagerReference": {
+                            "value": null,
+                            "inherited": false,
+                            "valueEmpty": true
+                        }
+                    },
+                    "costAllocationDefinition": {
+                        "costComponentFunction": "",
+                        "sourceType": "",
+                        "costComponentEnvironment": "PROD",
+                        "costComponentStatus": "In Production",
+                        "costComponentName": "null",
+                        "costComponentReference": "MON-BAP-LEGALPROCESSMANAGER",
+                        "costComponentType": "null",
+                        "status": "PENDING"
+                    },
+                    "customerDefinition": {}
+                },
+                "product": {
+                    "domain": "Infrastructure Services",
+                    "id": "BAP-SS-MON",
+                    "navision": 100,
+                    "group": "Application Monitoring"
+                },
+                "cost": {
+                    "totalCost": 100.0
+                },
+                "format": {
+                    "description": "AMS: WebService legalProcessManager (Prod)",
+                    "technicalDescription": "BAP-LEGALPROCESSMANAGER  WebService legalProcessManager (Prod)"
+                }
             }
         }
     },
@@ -745,14 +908,14 @@
             "label": "",
             "source": "BAP-SS-MON-PRICING",
             "target": "BAP-SS-MON-FORMAT",
-            "dataReference": null
+            "dataReference": "BAP-SS-MON-PRICING:o"
         },
         "L6": {
             "id": "45",
             "label": "",
             "source": "BAP-SS-MON-FORMAT",
             "target": "GLOBAL-INVOICE",
-            "dataReference": null
+            "dataReference": "BAP-SS-MON-FORMAT:o"
         }
     },
     "clusters": [
